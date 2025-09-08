@@ -546,11 +546,13 @@ export function JobTableSimple() {
                                 </Badge>
                               ))}
                             </div>
-                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="flex items-center gap-1">
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-7 w-7 p-0"
+                                className={`h-7 w-7 p-0 ${
+                                  job.morningbrew?.is_priority ? '' : 'opacity-0 group-hover:opacity-100'
+                                } transition-opacity`}
                                 onClick={(e) => {
                                   e.stopPropagation()
                                   handleTogglePriority(job.id, job.morningbrew?.is_priority || false)
@@ -566,7 +568,7 @@ export function JobTableSimple() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-7 w-7 p-0"
+                                className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                                 onClick={(e) => {
                                   e.stopPropagation()
                                   handleRemoveFromMorningBrew(job.id)
