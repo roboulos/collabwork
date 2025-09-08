@@ -401,7 +401,6 @@ export function JobTableSimple() {
                     onCheckedChange={handleSelectAll}
                   />
                 </TableHead>
-                <TableHead className="w-[50px]"></TableHead>
                 {columnVisibility.company && (
                   <TableHead>
                     <Button
@@ -506,25 +505,6 @@ export function JobTableSimple() {
                       onCheckedChange={() => handleJobSelection(job.id.toString())}
                     />
                   </TableCell>
-                  <TableCell onClick={(e) => e.stopPropagation()}>
-                    {job.is_morningbrew ? (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleTogglePriority(job.id, job.morningbrew?.is_priority || false)
-                        }}
-                      >
-                        <Star 
-                          className={`h-4 w-4 ${
-                            job.morningbrew?.is_priority ? 'fill-yellow-500 text-yellow-500' : 'text-gray-400'
-                          }`}
-                        />
-                      </Button>
-                    ) : null}
-                  </TableCell>
                   {columnVisibility.company && (
                     <TableCell className="font-medium">
                       <div className="space-y-1">
@@ -555,31 +535,47 @@ export function JobTableSimple() {
                     </TableCell>
                   )}
                   {columnVisibility.status && (
-                    <TableCell className="text-right relative">
-                      <div className="space-y-1">
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-2">
                         {job.is_morningbrew === true && (
                           <>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity h-8 text-xs"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleRemoveFromMorningBrew(job.id)
-                              }}
-                            >
-                              <X className="h-4 w-4 mr-1" />
-                              Remove
-                            </Button>
-                            {job.morningbrew && (
-                              <div className="flex flex-wrap gap-1 justify-end">
-                                {job.morningbrew.community_ids.map(c => (
-                                  <Badge key={c.id} variant="secondary" className="text-xs">
-                                    {c.community_name}
-                                  </Badge>
-                                ))}
-                              </div>
-                            )}
+                            <div className="flex flex-wrap gap-1">
+                              {job.morningbrew && job.morningbrew.community_ids.map(c => (
+                                <Badge key={c.id} variant="secondary" className="text-xs">
+                                  {c.community_name}
+                                </Badge>
+                              ))}
+                            </div>
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 w-7 p-0"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleTogglePriority(job.id, job.morningbrew?.is_priority || false)
+                                }}
+                                title={job.morningbrew?.is_priority ? "Remove priority" : "Mark as priority"}
+                              >
+                                <Star 
+                                  className={`h-4 w-4 ${
+                                    job.morningbrew?.is_priority ? 'fill-yellow-500 text-yellow-500' : 'text-gray-400'
+                                  }`}
+                                />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 w-7 p-0"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleRemoveFromMorningBrew(job.id)
+                                }}
+                                title="Remove from MorningBrew"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </>
                         )}
                       </div>
@@ -589,7 +585,7 @@ export function JobTableSimple() {
               ))}
               {filteredAndSortedJobs.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-24 text-center">
+                  <TableCell colSpan={6} className="h-24 text-center">
                     <p className="text-muted-foreground">
                       {searchQuery ? `No jobs found matching "${searchQuery}"` : 'No jobs found'}
                     </p>
