@@ -29,6 +29,7 @@ type ColumnVisibility = {
   position: boolean
   location: boolean
   employment: boolean
+  remote: boolean
   status: boolean
 }
 
@@ -48,6 +49,7 @@ export function JobTableSimple() {
     position: true,
     location: true,
     employment: true,
+    remote: true,
     status: true,
   })
   const [editModalOpen, setEditModalOpen] = useState(false)
@@ -531,6 +533,9 @@ export function JobTableSimple() {
                     </Button>
                   </TableHead>
                 )}
+                {columnVisibility.remote && (
+                  <TableHead className="hidden xl:table-cell w-[100px]">Remote</TableHead>
+                )}
                 {columnVisibility.status && (
                   <TableHead className="text-right">Status</TableHead>
                 )}
@@ -606,6 +611,19 @@ export function JobTableSimple() {
                       <span className="text-sm">
                         {job.employment_type || 'Not specified'}
                       </span>
+                    </TableCell>
+                  )}
+                  {columnVisibility.remote && (
+                    <TableCell className="hidden xl:table-cell">
+                      {job.is_remote ? (
+                        <Badge variant="outline" className="text-green-600 border-green-300">
+                          Remote OK
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-gray-400 border-gray-200">
+                          On-site
+                        </Badge>
+                      )}
                     </TableCell>
                   )}
                   {columnVisibility.status && (

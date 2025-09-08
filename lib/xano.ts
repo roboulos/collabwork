@@ -12,6 +12,7 @@ export interface JobPosting {
     country?: string;
   }>;
   employment_type?: string;
+  is_remote?: boolean;
   salary_min?: number;
   salary_max?: number;
   salary_period?: string;
