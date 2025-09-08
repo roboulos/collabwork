@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Badge } from './ui/badge'
 import { Card, CardHeader } from './ui/card'
 import { xanoService, JobPosting, Community } from '@/lib/xano'
-import { Loader2, Plus, Star, Search, ArrowUpDown, ArrowUp, ArrowDown, Settings2, X } from 'lucide-react'
+import { Loader2, Plus, Star, Search, ArrowUpDown, ArrowUp, ArrowDown, Settings2, X, Pencil } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -20,7 +20,7 @@ import {
 } from './ui/dropdown-menu'
 
 type SortConfig = {
-  key: keyof JobPosting | 'company' | 'position' | 'location' | 'salary'
+  key: keyof JobPosting | 'company' | 'position' | 'location' | 'employment'
   direction: 'asc' | 'desc'
 }
 
@@ -28,7 +28,7 @@ type ColumnVisibility = {
   company: boolean
   position: boolean
   location: boolean
-  salary: boolean
+  employment: boolean
   status: boolean
 }
 
@@ -47,8 +47,15 @@ export function JobTableSimple() {
     company: true,
     position: true,
     location: true,
-    salary: true,
+    employment: true,
     status: true,
+  })
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [editingJob, setEditingJob] = useState<JobPosting | null>(null)
+  const [editFormData, setEditFormData] = useState({
+    custom_company_name: '',
+    custom_location: '',
+    notes: ''
   })
 
   useEffect(() => {
@@ -246,6 +253,49 @@ export function JobTableSimple() {
     }))
   }
 
+  const handleEditJob = (job: JobPosting) => {
+    setEditingJob(job)
+    setEditFormData({
+      custom_company_name: job.custom_company_name || '',
+      custom_location: job.custom_location || '',
+      notes: job.notes || ''
+    })
+    setEditModalOpen(true)
+  }
+
+  const handleUpdateJob = async () => {
+    if (!editingJob) return
+
+    try {
+      setSubmitting(true)
+      
+      // Optimistically update the UI
+      setJobs(prevJobs =>
+        prevJobs.map(job =>
+          job.id === editingJob.id
+            ? { ...job, ...editFormData }
+            : job
+        )
+      )
+      
+      // Close modal immediately
+      setEditModalOpen(false)
+      
+      // Make API call in the background
+      await xanoService.updateJob({
+        job_posting_id: editingJob.id.toString(),
+        ...editFormData
+      })
+    } catch (error) {
+      console.error('Error updating job:', error)
+      alert('Error updating job. Please try again.')
+      // Revert the optimistic update on error
+      await loadJobs()
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   // Filter and sort jobs
   const filteredAndSortedJobs = useMemo(() => {
     let filtered = jobs.filter(job => {
@@ -282,9 +332,9 @@ export function JobTableSimple() {
             aVal = a.custom_location || (a.location?.[0]?.city || 'Remote')
             bVal = b.custom_location || (b.location?.[0]?.city || 'Remote')
             break
-          case 'salary':
-            aVal = a.salary_min || 0
-            bVal = b.salary_min || 0
+          case 'employment':
+            aVal = a.employment_type || ''
+            bVal = b.employment_type || ''
             break
           default:
             return 0
@@ -461,15 +511,15 @@ export function JobTableSimple() {
                     </Button>
                   </TableHead>
                 )}
-                {columnVisibility.salary && (
+                {columnVisibility.employment && (
                   <TableHead className="hidden lg:table-cell">
                     <Button
                       variant="ghost"
-                      onClick={() => handleSort('salary')}
+                      onClick={() => handleSort('employment')}
                       className="h-auto p-0 font-medium"
                     >
-                      Salary
-                      {sortConfig?.key === 'salary' ? (
+                      Type
+                      {sortConfig?.key === 'employment' ? (
                         sortConfig.direction === 'asc' ? (
                           <ArrowUp className="ml-2 h-4 w-4" />
                         ) : (
@@ -509,12 +559,40 @@ export function JobTableSimple() {
                     <TableCell className="font-medium">
                       <div className="space-y-1">
                         <div>{job.custom_company_name || job.company}</div>
-                        <div className="sm:hidden text-sm text-muted-foreground">{job.title}</div>
+                        <div className="sm:hidden text-sm text-muted-foreground">
+                          {job.application_url ? (
+                            <a 
+                              href={job.application_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 hover:underline"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {job.title}
+                            </a>
+                          ) : (
+                            job.title
+                          )}
+                        </div>
                       </div>
                     </TableCell>
                   )}
                   {columnVisibility.position && (
-                    <TableCell className="hidden sm:table-cell">{job.title}</TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      {job.application_url ? (
+                        <a 
+                          href={job.application_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 hover:underline"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {job.title}
+                        </a>
+                      ) : (
+                        job.title
+                      )}
+                    </TableCell>
                   )}
                   {columnVisibility.location && (
                     <TableCell className="hidden md:table-cell">
@@ -523,15 +601,11 @@ export function JobTableSimple() {
                         : 'Remote')}
                     </TableCell>
                   )}
-                  {columnVisibility.salary && (
+                  {columnVisibility.employment && (
                     <TableCell className="hidden lg:table-cell">
-                      {job.salary_min && job.salary_max ? (
-                        <span className="text-sm">
-                          ${job.salary_min.toLocaleString()}-${job.salary_max.toLocaleString()} {job.salary_period?.toLowerCase()}
-                        </span>
-                      ) : (
-                        <span className="text-sm text-muted-foreground">Not specified</span>
-                      )}
+                      <span className="text-sm">
+                        {job.employment_type || 'Not specified'}
+                      </span>
                     </TableCell>
                   )}
                   {columnVisibility.status && (
@@ -580,6 +654,18 @@ export function JobTableSimple() {
                             </div>
                           </>
                         )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleEditJob(job)
+                          }}
+                          title="Edit job details"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
                       </div>
                     </TableCell>
                   )}
@@ -651,6 +737,71 @@ export function JobTableSimple() {
             >
               {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Add to Selected Brands
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Edit Job Details</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="text-sm font-medium mb-1 block">Company Name (Override)</label>
+              <Input
+                placeholder="Leave empty to use original"
+                value={editFormData.custom_company_name}
+                onChange={(e) => setEditFormData(prev => ({ ...prev, custom_company_name: e.target.value }))}
+              />
+              {editingJob && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Original: {editingJob.custom_company_name || editingJob.company}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="text-sm font-medium mb-1 block">Location (Override)</label>
+              <Input
+                placeholder="Leave empty to use original"
+                value={editFormData.custom_location}
+                onChange={(e) => setEditFormData(prev => ({ ...prev, custom_location: e.target.value }))}
+              />
+              {editingJob && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Original: {editingJob.custom_location || 
+                    (editingJob.location && editingJob.location[0] ? 
+                      `${editingJob.location[0].city || ''}${editingJob.location[0].state ? `, ${editingJob.location[0].state}` : ''}${editingJob.location[0].country ? `, ${editingJob.location[0].country}` : ''}` 
+                      : 'Remote')}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="text-sm font-medium mb-1 block">Notes</label>
+              <textarea
+                placeholder="Add any notes about this job..."
+                value={editFormData.notes}
+                onChange={(e) => setEditFormData(prev => ({ ...prev, notes: e.target.value }))}
+                className="w-full p-2 border rounded-md"
+                rows={3}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleUpdateJob} 
+              disabled={submitting}
+            >
+              {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Save Changes
             </Button>
           </DialogFooter>
         </DialogContent>
