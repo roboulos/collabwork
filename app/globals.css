@@ -26,7 +26,7 @@
     --secondary-foreground: 220 9% 22%;
     
     --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
+    --muted-foreground: 220 9% 35%;
     
     --accent: 220 14% 96%;
     --accent-foreground: 220 9% 22%;
@@ -75,7 +75,7 @@
     --secondary-foreground: 210 20% 98%;
     
     --muted: 217 33% 15%;
-    --muted-foreground: 215 20% 65%;
+    --muted-foreground: 215 20% 75%;
     
     --accent: 217 33% 17%;
     --accent-foreground: 210 20% 98%;
@@ -110,7 +110,14 @@
   }
   
   :focus-visible {
-    @apply outline-none ring-2 ring-ring/20 ring-offset-2 ring-offset-background transition-all;
+    @apply outline-none ring-2 ring-primary/40 ring-offset-2 ring-offset-background transition-all;
+  }
+  
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    :focus-visible {
+      @apply ring-2 ring-primary ring-offset-2 ring-offset-background;
+    }
   }
   
   /* Beautiful text selection */
@@ -250,4 +257,27 @@
 /* Skeleton loading */
 .skeleton {
   @apply animate-pulse bg-muted rounded;
+}
+
+/* Elevation utilities aligned to design tokens */
+.shadow-elevation-1 { 
+  box-shadow: var(--shadow-sm); 
+}
+
+.shadow-elevation-2 { 
+  box-shadow: var(--shadow-md); 
+}
+
+.shadow-elevation-3 { 
+  box-shadow: var(--shadow-lg); 
+}
+
+/* Interactive elevation on hover */
+.shadow-interactive {
+  @apply transition-shadow duration-200;
+  box-shadow: var(--shadow-sm);
+}
+
+.shadow-interactive:hover {
+  box-shadow: var(--shadow-md);
 }

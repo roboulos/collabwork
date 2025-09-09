@@ -33,7 +33,7 @@ export function DataTableToolbar<TData>({
             onChange={(event) =>
               table.getColumn(filterColumn)?.setFilterValue(event.target.value)
             }
-            className="h-8 w-full sm:w-[150px] lg:w-[250px]"
+            className="h-10 w-full sm:w-[150px] lg:w-[250px]"
           />
           {table.getColumn("morningbrew_brands") && brandOptions.length > 0 && (
             <DataTableFacetedFilter
@@ -46,7 +46,7 @@ export function DataTableToolbar<TData>({
             <Button
               variant="ghost"
               onClick={() => table.resetColumnFilters()}
-              className="h-8 px-2 lg:px-3"
+              className="h-10 px-4"
             >
               Reset
               <Cross2Icon className="ml-2 h-4 w-4" />
@@ -58,8 +58,7 @@ export function DataTableToolbar<TData>({
             <Button 
               onClick={onAddJobs}
               disabled={!table.getFilteredSelectedRowModel().rows.length}
-              size="sm"
-              className="h-8"
+              size="default"
             >
               <Plus className="mr-2 h-4 w-4" />
               Add to MorningBrew

@@ -5,6 +5,7 @@ import {
   ColumnFiltersState,
   SortingState,
   VisibilityState,
+  ColumnSizingState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -48,6 +49,7 @@ export function JobTableEnhancedV3() {
     description: false,
   })
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
   const [sorting, setSorting] = useState<SortingState>([
     { id: 'posted_at', desc: true }
   ])
@@ -294,7 +296,7 @@ export function JobTableEnhancedV3() {
     }
   }
 
-  const columns = createJobsColumnsV3({
+  const columns = React.useMemo(() => createJobsColumnsV3({
     onTogglePriority: handleTogglePriority,
     onRemoveFromMorningBrew: handleRemoveFromMorningBrew,
     onCopyJob: handleCopyJobText,
@@ -304,7 +306,7 @@ export function JobTableEnhancedV3() {
     setEditValue,
     onSaveEdit: handleSaveEdit,
     onCancelEdit: handleCancelEdit
-  })
+  }), [editingCell, editValue])
 
   const table = useReactTable({
     data: jobs,
@@ -319,12 +321,15 @@ export function JobTableEnhancedV3() {
       columnVisibility,
       rowSelection,
       columnFilters,
+      columnSizing,
     },
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
+    onColumnSizingChange: setColumnSizing,
+    columnResizeMode: 'onEnd' as const,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -387,20 +392,37 @@ export function JobTableEnhancedV3() {
                     <TableRow key={headerGroup.id}>
                       {headerGroup.headers.map((header) => {
                         return (
-                          <TableHead key={header.id} colSpan={header.colSpan}>
+                          <TableHead 
+                            key={header.id} 
+                            colSpan={header.colSpan}
+                            style={{ width: header.getSize() }}
+                            className="relative"
+                          >
                             {header.isPlaceholder
                               ? null
-                              : flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext()
-                                )}
+                              : (
+                                <>
+                                  {flexRender(
+                                    header.column.columnDef.header,
+                                    header.getContext()
+                                  )}
+                                  {header.column.getCanResize() && (
+                                    <div
+                                      onMouseDown={header.getResizeHandler()}
+                                      onTouchStart={header.getResizeHandler()}
+                                      className="absolute right-0 top-0 h-full w-1 cursor-col-resize select-none touch-none hover:bg-primary/20 hover:w-2 transition-all"
+                                      onClick={(e) => e.stopPropagation()}
+                                    />
+                                  )}
+                                </>
+                              )}
                           </TableHead>
                         )
                       })}
                     </TableRow>
                   ))}
                 </TableHeader>
-                <TableBody>
+                <TableBody className="divide-y divide-border/50">
                   {table.getRowModel().rows?.length ? (
                     table.getRowModel().rows.map((row) => (
                       <TableRow
@@ -418,21 +440,25 @@ export function JobTableEnhancedV3() {
                           }
                         }}
                         className={cn(
-                          "cursor-pointer transition-all duration-200",
-                          // Priority: warm amber tint with gradient
+                          "group cursor-pointer transition-all duration-200",
+                          // Priority: subtle left accent instead of full gradient
                           row.original.morningbrew?.is_priority &&
-                            "bg-gradient-to-r from-amber-100/60 to-amber-50/30 hover:from-amber-100 hover:to-amber-50/50 dark:from-amber-500/10 dark:to-amber-500/5 dark:hover:from-amber-500/15 dark:hover:to-amber-500/10",
+                            "border-l-2 border-l-amber-500 bg-gradient-to-r from-amber-50/20 to-transparent hover:from-amber-50/40 dark:from-amber-500/5 dark:hover:from-amber-500/10",
                           
-                          // MorningBrew (non-priority): cool sky tint
+                          // MorningBrew (non-priority): subtle dot indicator
                           row.original.is_morningbrew && !row.original.morningbrew?.is_priority &&
-                            "bg-gradient-to-r from-sky-50/40 to-sky-50/20 hover:from-sky-50 hover:to-sky-50/40 dark:from-sky-500/10 dark:to-sky-500/5 dark:hover:from-sky-500/15 dark:hover:to-sky-500/10",
+                            "bg-gradient-to-r from-sky-50/25 to-sky-50/15 hover:from-sky-50/40 hover:to-sky-50/30 dark:from-sky-400/5 dark:to-transparent dark:hover:from-sky-400/10",
                           
-                          // Default hover with scale
+                          // Default hover
                           !row.original.is_morningbrew &&
-                            "hover:bg-accent/40 dark:hover:bg-accent/35 hover:scale-[1.002] hover:shadow-sm",
+                            "hover:bg-accent/30 dark:hover:bg-accent/20",
                           
-                          // Selection: subtle ring and surface, not a flat solid fill
-                          "data-[state=selected]:ring-2 data-[state=selected]:ring-primary/40 data-[state=selected]:ring-offset-1 data-[state=selected]:ring-offset-background data-[state=selected]:shadow-md"
+                          // Enhanced selection with gradient and ring
+                          row.getIsSelected() && [
+                            "bg-gradient-to-r from-primary/10 to-transparent dark:from-primary/15 dark:to-transparent",
+                            "ring-1 ring-primary/40 ring-inset",
+                            "shadow-[inset_0_0_0_1px_rgba(0,0,0,0.02)]"
+                          ]
                         )}
                       >
                         {row.getVisibleCells().map((cell) => (
@@ -472,10 +498,10 @@ export function JobTableEnhancedV3() {
             <DialogTitle>Add Jobs to MorningBrew</DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-4 py-4">
+          <div className="space-y-6 py-4">
             <div>
               <h3 className="text-sm font-medium mb-3">Select MorningBrew Brands:</h3>
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 {communities.map((community) => (
                   <label
                     key={community.id}

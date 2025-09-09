@@ -61,6 +61,9 @@ export const createJobsColumnsV3 = ({
     ),
     enableSorting: false,
     enableHiding: false,
+    size: 40,
+    minSize: 40,
+    maxSize: 40,
   },
   {
     accessorKey: "company",
@@ -74,7 +77,10 @@ export const createJobsColumnsV3 = ({
       
       if (isEditing) {
         return (
-          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="flex items-center gap-1 bg-background border border-input rounded-md px-2 py-0.5 -mx-1 shadow-sm"
+            onClick={(e) => e.stopPropagation()}
+          >
             <Input
               value={editValue}
               onChange={(e) => setEditValue(e.target.value)}
@@ -82,13 +88,14 @@ export const createJobsColumnsV3 = ({
                 if (e.key === 'Enter') onSaveEdit()
                 if (e.key === 'Escape') onCancelEdit()
               }}
-              className="h-8 text-sm"
+              className="h-7 text-sm border-0 bg-transparent focus:outline-none"
               autoFocus
+              title="Press Enter to save, Esc to cancel"
             />
-            <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={onSaveEdit}>
+            <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={onSaveEdit} aria-label="Save">
               <Check className="h-4 w-4 text-green-600" />
             </Button>
-            <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={onCancelEdit}>
+            <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={onCancelEdit} aria-label="Cancel">
               <XIcon className="h-4 w-4 text-red-600" />
             </Button>
           </div>
@@ -109,19 +116,17 @@ export const createJobsColumnsV3 = ({
             </span>
           )}
           <span className="text-xs text-muted-foreground">
-            {job.sector && (
-              <Badge variant="outline" className="mr-1 text-xs">
-                {job.sector}
-              </Badge>
-            )}
-            {job.industry && (
-              <span className="text-xs">{job.industry}</span>
-            )}
+            {job.sector && <span>{job.sector}</span>}
+            {job.sector && job.industry && <span className="mx-1 opacity-40">•</span>}
+            {job.industry && <span>{job.industry}</span>}
           </span>
         </div>
       )
     },
     enableHiding: true,
+    size: 200,
+    minSize: 120,
+    maxSize: 300,
   },
   {
     accessorKey: "ai_title",
@@ -135,7 +140,10 @@ export const createJobsColumnsV3 = ({
       
       if (isEditing) {
         return (
-          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="flex items-center gap-1 bg-background border border-input rounded-md px-2 py-0.5 -mx-1 shadow-sm"
+            onClick={(e) => e.stopPropagation()}
+          >
             <Input
               value={editValue}
               onChange={(e) => setEditValue(e.target.value)}
@@ -143,13 +151,14 @@ export const createJobsColumnsV3 = ({
                 if (e.key === 'Enter') onSaveEdit()
                 if (e.key === 'Escape') onCancelEdit()
               }}
-              className="h-8 text-sm"
+              className="h-7 text-sm border-0 bg-transparent focus:outline-none"
               autoFocus
+              title="Press Enter to save, Esc to cancel"
             />
-            <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={onSaveEdit}>
+            <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={onSaveEdit} aria-label="Save">
               <Check className="h-4 w-4 text-green-600" />
             </Button>
-            <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={onCancelEdit}>
+            <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={onCancelEdit} aria-label="Cancel">
               <XIcon className="h-4 w-4 text-red-600" />
             </Button>
           </div>
@@ -186,35 +195,38 @@ export const createJobsColumnsV3 = ({
               </span>
             )}
           </div>
-          <div className="flex flex-wrap gap-1">
-            {job.ai_confidence_score !== undefined && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Badge 
-                      variant="outline" 
-                      className={`text-xs ${
-                        job.ai_confidence_score >= 80 
-                          ? 'border-green-300 text-green-700' 
-                          : job.ai_confidence_score >= 60 
-                          ? 'border-yellow-300 text-yellow-700'
-                          : 'border-gray-300 text-gray-700'
-                      }`}
-                    >
-                      AI {job.ai_confidence_score}%
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    AI Confidence: {job.ai_confidence_score}%
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+          <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground mt-1">
+            {typeof job.ai_confidence_score === 'number' && (
+              <span className="tabular-nums">
+                AI {job.ai_confidence_score}%
+              </span>
             )}
-            {job.ai_top_tags?.slice(0, 3).map((tag: string, index: number) => (
-              <Badge key={index} variant="secondary" className="text-xs">
-                {tag}
-              </Badge>
-            ))}
+            {job.ai_top_tags?.length ? (
+              <>
+                <span className="opacity-40">•</span>
+                {job.ai_top_tags.slice(0, 2).map((tag: string, i: number) => (
+                  <span key={i} className="truncate max-w-[12ch]">{tag}</span>
+                ))}
+                {job.ai_top_tags.length > 2 && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          className="underline decoration-dotted underline-offset-2 hover:text-foreground transition-colors"
+                          onClick={(e) => e.stopPropagation()}
+                          aria-label={`Show ${job.ai_top_tags.length - 2} more tags`}
+                        >
+                          +{job.ai_top_tags.length - 2}
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {job.ai_top_tags.join(', ')}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+              </>
+            ) : null}
           </div>
           {job.ai_skills && job.ai_skills.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-1">
@@ -238,6 +250,10 @@ export const createJobsColumnsV3 = ({
         title.toLowerCase().includes(term)
       )
     },
+    size: 280,
+    minSize: 180,
+    maxSize: 400,
+    enableResizing: true,
   },
   {
     accessorKey: "location",
@@ -266,7 +282,10 @@ export const createJobsColumnsV3 = ({
       
       if (isEditing) {
         return (
-          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="flex items-center gap-1 bg-background border border-input rounded-md px-2 py-0.5 -mx-1 shadow-sm"
+            onClick={(e) => e.stopPropagation()}
+          >
             <Input
               value={editValue}
               onChange={(e) => setEditValue(e.target.value)}
@@ -274,13 +293,14 @@ export const createJobsColumnsV3 = ({
                 if (e.key === 'Enter') onSaveEdit()
                 if (e.key === 'Escape') onCancelEdit()
               }}
-              className="h-8 text-sm"
+              className="h-7 text-sm border-0 bg-transparent focus:outline-none"
               autoFocus
+              title="Press Enter to save, Esc to cancel"
             />
-            <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={onSaveEdit}>
+            <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={onSaveEdit} aria-label="Save">
               <Check className="h-4 w-4 text-green-600" />
             </Button>
-            <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={onCancelEdit}>
+            <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={onCancelEdit} aria-label="Cancel">
               <XIcon className="h-4 w-4 text-red-600" />
             </Button>
           </div>
@@ -304,6 +324,9 @@ export const createJobsColumnsV3 = ({
       )
     },
     enableHiding: true,
+    size: 150,
+    minSize: 100,
+    maxSize: 250,
   },
   {
     accessorKey: "employment_type",
@@ -326,6 +349,9 @@ export const createJobsColumnsV3 = ({
       return value.includes(row.getValue(id))
     },
     enableHiding: true,
+    size: 120,
+    minSize: 100,
+    maxSize: 150,
   },
   {
     accessorKey: "is_remote",
@@ -435,12 +461,16 @@ export const createJobsColumnsV3 = ({
         badgeColor = 'bg-gray-100 text-gray-600 border-gray-300'
       }
       
-      return badgeColor ? (
-        <Badge variant="outline" className={`text-xs ${badgeColor}`}>
+      return (
+        <Badge variant="outline" className={`text-xs ${
+          diffDays <= 1 ? 'text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-700' :
+          diffDays < 7 ? 'text-blue-700 dark:text-blue-400 border-blue-300 dark:border-blue-700' :
+          diffDays < 30 ? 'text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700' :
+          diffDays < 365 ? 'text-red-700 dark:text-red-400 border-red-300 dark:border-red-700' :
+          'text-gray-600 dark:text-gray-400'
+        }`}>
           {timeAgo}
         </Badge>
-      ) : (
-        <span className="text-sm">{timeAgo}</span>
       )
     },
     enableHiding: true,
@@ -635,18 +665,36 @@ export const createJobsColumnsV3 = ({
         return null
       }
       
+      const brands = job.morningbrew.community_ids
+      const visible = brands.slice(0, 2)
+      const overflow = brands.length - visible.length
+      
       return (
         <div className="flex flex-wrap items-center gap-1">
           {job.morningbrew?.is_priority && (
-            <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">
+            <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-800">
               Priority
             </Badge>
           )}
-          {job.morningbrew?.community_ids.map(c => (
+          {visible.map(c => (
             <Badge key={c.id} variant="secondary" className="text-xs">
               {c.community_name}
             </Badge>
           ))}
+          {overflow > 0 && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge variant="outline" className="text-xs cursor-help">
+                    +{overflow}
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {brands.map(c => c.community_name).join(', ')}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </div>
       )
     },
@@ -663,7 +711,7 @@ export const createJobsColumnsV3 = ({
       const job = row.original
       
       return (
-        <div className="flex items-center justify-end gap-1">
+        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -675,6 +723,7 @@ export const createJobsColumnsV3 = ({
                     e.stopPropagation()
                     onCopyJob(job)
                   }}
+                  aria-label="Copy job text for newsletter"
                 >
                   <Copy className="h-4 w-4 text-gray-600" />
                 </Button>
