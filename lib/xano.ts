@@ -16,10 +16,14 @@ export interface JobPosting {
   salary_min?: number;
   salary_max?: number;
   salary_period?: string;
+  cpc?: number;
+  cpa?: number;
   description?: string;
   ai_description?: string;
   ai_title?: string;
   ai_skills?: string[];
+  ai_job_tasks?: string[];
+  ai_search_terms?: string[];
   ai_top_tags?: string[];
   ai_confidence_score?: number;
   application_url?: string;
@@ -28,6 +32,15 @@ export interface JobPosting {
   sector?: string;
   industry?: string;
   industry_group?: string;
+  post_type?: string;
+  _geo?: {
+    lat: number;
+    lng: number;
+  };
+  searchable_text?: string;
+  execution_id?: number;
+  partner_id?: number;
+  feed_id?: number;
   custom_company_name?: string;
   custom_location?: string;
   notes?: string;
@@ -44,7 +57,6 @@ export interface JobPosting {
     is_priority?: boolean;
     status?: string;
     click_count?: number;
-    cpc?: number;
     published_at?: number;
     approved_at?: number;
     archived_at?: number;

@@ -102,25 +102,25 @@ export const createJobsColumns = ({
             )}
           </div>
           <div className="flex flex-wrap gap-1">
-            {job.ai_confidence_score && (
+            {job.ai_confidence_score !== undefined && (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger>
                     <Badge 
                       variant="outline" 
                       className={`text-xs ${
-                        job.ai_confidence_score >= 0.8 
+                        job.ai_confidence_score >= 80 
                           ? 'border-green-300 text-green-700' 
-                          : job.ai_confidence_score >= 0.6 
+                          : job.ai_confidence_score >= 60 
                           ? 'border-yellow-300 text-yellow-700'
                           : 'border-gray-300 text-gray-700'
                       }`}
                     >
-                      AI {Math.round(job.ai_confidence_score * 100)}%
+                      AI {job.ai_confidence_score}%
                     </Badge>
                   </TooltipTrigger>
                   <TooltipContent>
-                    AI Confidence: {Math.round(job.ai_confidence_score * 100)}%
+                    AI Confidence: {job.ai_confidence_score}%
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -331,17 +331,82 @@ export const createJobsColumns = ({
     ),
     cell: ({ row }) => {
       const job = row.original
-      // Assuming CPC is calculated or stored somewhere in the data
-      // For now, showing a placeholder - update when CPC data is available
-      const cpc = job.morningbrew?.cpc || null
+      const cpc = job.cpc
       return (
         <div className="text-center text-sm">
-          {cpc ? (
-            <span className="font-medium">${cpc.toFixed(2)}</span>
+          {cpc !== undefined && cpc !== null ? (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <span className="font-medium">${cpc.toFixed(2)}</span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  Cost Per Click: ${cpc.toFixed(2)}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           ) : (
             <span className="text-muted-foreground">—</span>
           )}
         </div>
+      )
+    },
+    enableHiding: true,
+  },
+  {
+    id: "cpa",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="CPA" />
+    ),
+    cell: ({ row }) => {
+      const job = row.original
+      const cpa = job.cpa
+      return (
+        <div className="text-center text-sm">
+          {cpa !== undefined && cpa !== null && cpa > 0 ? (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <span className="font-medium">${cpa.toFixed(2)}</span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  Cost Per Acquisition: ${cpa.toFixed(2)}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ) : (
+            <span className="text-muted-foreground">—</span>
+          )}
+        </div>
+      )
+    },
+    enableHiding: true,
+  },
+  {
+    id: "source",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Source" />
+    ),
+    cell: ({ row }) => {
+      const job = row.original
+      const postType = job.post_type
+      const feedId = job.feed_id
+      
+      return (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <Badge variant="outline" className="text-xs">
+                {postType === "JOB_FEED" ? `Feed ${feedId}` : postType || "Unknown"}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>
+              Post Type: {postType || "Unknown"}
+              {feedId && <><br />Feed ID: {feedId}</>}
+              {job.partner_id && <><br />Partner ID: {job.partner_id}</>}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       )
     },
     enableHiding: true,
@@ -405,7 +470,7 @@ export const createJobsColumns = ({
       const job = row.original
       
       if (!job.is_morningbrew || !job.morningbrew?.community_ids?.length) {
-        return <span className="text-xs text-muted-foreground">—</span>
+        return <span className="text-xs text-muted-foreground">Not in MB</span>
       }
       
       return (
