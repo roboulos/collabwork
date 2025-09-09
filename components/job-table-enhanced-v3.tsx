@@ -28,6 +28,7 @@ import { Button } from './ui/button'
 import { Checkbox } from './ui/checkbox'
 import { xanoService, JobPosting, Community } from '@/lib/xano'
 import { Loader2 } from 'lucide-react'
+import { TableSkeleton } from './ui/skeleton'
 import { createJobsColumnsV3 } from './jobs-columns-v3'
 import { DataTableToolbar } from './data-table/data-table-toolbar'
 import { DataTablePagination } from './data-table/data-table-pagination'
@@ -334,9 +335,17 @@ export function JobTableEnhancedV3() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
+      <Card className="shadow-sm border-border/60">
+        <div className="p-4">
+          <div className="mb-4 animate-fade-in">
+            <h2 className="text-2xl font-bold tracking-tight">Job Postings</h2>
+            <p className="text-muted-foreground">
+              Manage and curate job listings for MorningBrew newsletters
+            </p>
+          </div>
+          <TableSkeleton rows={8} />
+        </div>
+      </Card>
     )
   }
 
@@ -370,9 +379,10 @@ export function JobTableEnhancedV3() {
               }))}
             />
             
-            <div className="rounded-lg border border-border/60 bg-card/60 shadow-sm">
-              <Table>
-                <TableHeader className="bg-card/70">
+            <div className="rounded-lg border border-border/60 bg-card/60 shadow-sm overflow-hidden">
+              <div className="max-h-[calc(100vh-300px)] overflow-auto">
+                <Table>
+                  <TableHeader className="bg-card/70 sticky top-0 z-10 backdrop-blur-sm border-b border-border">
                   {table.getHeaderGroups().map((headerGroup) => (
                     <TableRow key={headerGroup.id}>
                       {headerGroup.headers.map((header) => {
@@ -408,21 +418,21 @@ export function JobTableEnhancedV3() {
                           }
                         }}
                         className={cn(
-                          "cursor-pointer transition-colors",
-                          // Priority: warm amber tint
+                          "cursor-pointer transition-all duration-200",
+                          // Priority: warm amber tint with gradient
                           row.original.morningbrew?.is_priority &&
-                            "bg-amber-100/60 hover:bg-amber-100 dark:bg-amber-500/10 dark:hover:bg-amber-500/15",
+                            "bg-gradient-to-r from-amber-100/60 to-amber-50/30 hover:from-amber-100 hover:to-amber-50/50 dark:from-amber-500/10 dark:to-amber-500/5 dark:hover:from-amber-500/15 dark:hover:to-amber-500/10",
                           
                           // MorningBrew (non-priority): cool sky tint
                           row.original.is_morningbrew && !row.original.morningbrew?.is_priority &&
-                            "bg-sky-50/40 hover:bg-sky-50 dark:bg-sky-500/10 dark:hover:bg-sky-500/15",
+                            "bg-gradient-to-r from-sky-50/40 to-sky-50/20 hover:from-sky-50 hover:to-sky-50/40 dark:from-sky-500/10 dark:to-sky-500/5 dark:hover:from-sky-500/15 dark:hover:to-sky-500/10",
                           
-                          // Default hover
+                          // Default hover with scale
                           !row.original.is_morningbrew &&
-                            "hover:bg-accent/40 dark:hover:bg-accent/35",
+                            "hover:bg-accent/40 dark:hover:bg-accent/35 hover:scale-[1.002] hover:shadow-sm",
                           
                           // Selection: subtle ring and surface, not a flat solid fill
-                          "data-[state=selected]:ring-2 data-[state=selected]:ring-primary/40 data-[state=selected]:ring-offset-1 data-[state=selected]:ring-offset-background"
+                          "data-[state=selected]:ring-2 data-[state=selected]:ring-primary/40 data-[state=selected]:ring-offset-1 data-[state=selected]:ring-offset-background data-[state=selected]:shadow-md"
                         )}
                       >
                         {row.getVisibleCells().map((cell) => (
@@ -446,7 +456,8 @@ export function JobTableEnhancedV3() {
                     </TableRow>
                   )}
                 </TableBody>
-              </Table>
+                </Table>
+              </div>
             </div>
             
             <DataTablePagination table={table} />
@@ -468,7 +479,7 @@ export function JobTableEnhancedV3() {
                 {communities.map((community) => (
                   <label
                     key={community.id}
-                    className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded"
+                    className="flex items-center space-x-2 cursor-pointer hover:bg-accent p-2 rounded-md transition-colors duration-150"
                   >
                     <Checkbox
                       checked={selectedCommunities.has(community.id.toString())}

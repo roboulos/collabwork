@@ -10,15 +10,34 @@ const config: Config = {
   ],
   theme: {
   	extend: {
+  		fontFamily: {
+  			sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
+  		},
+  		fontSize: {
+  			'xs': ['11px', { lineHeight: '16px', letterSpacing: '0.01em' }],
+  			'sm': ['13px', { lineHeight: '20px', letterSpacing: '0' }],
+  			'base': ['14px', { lineHeight: '22px', letterSpacing: '-0.006em' }],
+  			'lg': ['16px', { lineHeight: '24px', letterSpacing: '-0.011em' }],
+  			'xl': ['18px', { lineHeight: '26px', letterSpacing: '-0.014em' }],
+  			'2xl': ['20px', { lineHeight: '28px', letterSpacing: '-0.017em' }],
+  			'3xl': ['24px', { lineHeight: '32px', letterSpacing: '-0.019em' }],
+  			'4xl': ['32px', { lineHeight: '40px', letterSpacing: '-0.021em' }],
+  			'5xl': ['40px', { lineHeight: '48px', letterSpacing: '-0.022em' }],
+  		},
   		colors: {
-  			border: 'hsl(var(--border))',
+  			border: {
+  				DEFAULT: 'hsl(var(--border))',
+  				subtle: 'hsl(var(--border-subtle))',
+  				strong: 'hsl(var(--border-strong))',
+  			},
   			input: 'hsl(var(--input))',
   			ring: 'hsl(var(--ring))',
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			primary: {
   				DEFAULT: 'hsl(var(--primary))',
-  				foreground: 'hsl(var(--primary-foreground))'
+  				foreground: 'hsl(var(--primary-foreground))',
+  				hover: 'hsl(var(--primary-hover))',
   			},
   			secondary: {
   				DEFAULT: 'hsl(var(--secondary))',
@@ -42,7 +61,8 @@ const config: Config = {
   			},
   			card: {
   				DEFAULT: 'hsl(var(--card))',
-  				foreground: 'hsl(var(--card-foreground))'
+  				foreground: 'hsl(var(--card-foreground))',
+  				hover: 'hsl(var(--card-hover))',
   			}
   		},
   		borderRadius: {
@@ -73,10 +93,21 @@ const config: Config = {
   			'accordion-up': 'accordion-up 0.2s ease-out'
   		},
   		boxShadow: {
-  			// subtle surface elevations that look good in dark mode
-  			'elevation-1': '0 1px 2px rgba(2, 6, 23, 0.25), 0 1px 1px -1px rgba(2, 6, 23, 0.25)',
-  			'elevation-2': '0 6px 24px rgba(0, 0, 0, 0.35)',
+  			'xs': 'var(--shadow-xs)',
+  			'sm': 'var(--shadow-sm)',
+  			'md': 'var(--shadow-md)',
+  			'lg': 'var(--shadow-lg)',
   			'glow': '0 0 0 3px hsl(var(--ring) / 0.25)',
+  			'inner-sm': 'inset 0 1px 1px 0 rgb(0 0 0 / 0.05)',
+  		},
+  		transitionTimingFunction: {
+  			'out-expo': 'var(--ease-out-expo)',
+  			'spring': 'var(--ease-spring)',
+  		},
+  		transitionDuration: {
+  			'250': '250ms',
+  			'350': '350ms',
+  			'400': '400ms',
   		}
   	}
   },
