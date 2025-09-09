@@ -18,9 +18,16 @@ export interface JobPosting {
   salary_period?: string;
   description?: string;
   ai_description?: string;
+  ai_title?: string;
+  ai_skills?: string[];
+  ai_top_tags?: string[];
+  ai_confidence_score?: number;
   application_url?: string;
   posted_at?: number;
   created_at?: number;
+  sector?: string;
+  industry?: string;
+  industry_group?: string;
   custom_company_name?: string;
   custom_location?: string;
   notes?: string;
@@ -37,6 +44,7 @@ export interface JobPosting {
     is_priority?: boolean;
     status?: string;
     click_count?: number;
+    cpc?: number;
     published_at?: number;
     approved_at?: number;
     archived_at?: number;

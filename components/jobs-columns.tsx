@@ -60,38 +60,97 @@ export const createJobsColumns = ({
       return (
         <div className="flex flex-col space-y-1">
           <span className="font-medium">{company}</span>
-          <span className="text-xs text-muted-foreground sm:hidden">
-            {job.title}
+          <span className="text-xs text-muted-foreground">
+            {job.sector && (
+              <Badge variant="outline" className="mr-1 text-xs">
+                {job.sector}
+              </Badge>
+            )}
+            {job.industry && (
+              <span className="text-xs">{job.industry}</span>
+            )}
           </span>
         </div>
       )
     },
+    enableHiding: true,
   },
   {
-    accessorKey: "title",
+    accessorKey: "ai_title",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Position" />
     ),
     cell: ({ row }) => {
       const job = row.original
-      return job.application_url ? (
-        <a 
-          href={job.application_url} 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {job.title}
-          <ExternalLink className="h-3 w-3" />
-        </a>
-      ) : (
-        <span>{job.title}</span>
+      const title = job.ai_title || job.title
+      return (
+        <div className="space-y-1">
+          <div>
+            {job.application_url ? (
+              <a 
+                href={job.application_url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {title}
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            ) : (
+              <span className="font-medium">{title}</span>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-1">
+            {job.ai_confidence_score && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Badge 
+                      variant="outline" 
+                      className={`text-xs ${
+                        job.ai_confidence_score >= 0.8 
+                          ? 'border-green-300 text-green-700' 
+                          : job.ai_confidence_score >= 0.6 
+                          ? 'border-yellow-300 text-yellow-700'
+                          : 'border-gray-300 text-gray-700'
+                      }`}
+                    >
+                      AI {Math.round(job.ai_confidence_score * 100)}%
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    AI Confidence: {Math.round(job.ai_confidence_score * 100)}%
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+            {job.ai_top_tags?.slice(0, 3).map((tag: string, index: number) => (
+              <Badge key={index} variant="secondary" className="text-xs">
+                {tag}
+              </Badge>
+            ))}
+          </div>
+          {job.ai_skills && job.ai_skills.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-1">
+              <span className="text-xs text-muted-foreground mr-1">Skills:</span>
+              {job.ai_skills.slice(0, 4).map((skill: string, index: number) => (
+                <span key={index} className="text-xs text-muted-foreground">
+                  {skill}{index < Math.min(job.ai_skills.length - 1, 3) && ','}
+                </span>
+              ))}
+              {job.ai_skills.length > 4 && (
+                <span className="text-xs text-muted-foreground">+{job.ai_skills.length - 4}</span>
+              )}
+            </div>
+          )}
+        </div>
       )
     },
     filterFn: (row, id, value) => {
+      const title = row.original.ai_title || row.original.title || ''
       return value.toLowerCase().split(' ').every((term: string) =>
-        row.getValue(id)?.toString().toLowerCase().includes(term)
+        title.toLowerCase().includes(term)
       )
     },
   },
@@ -102,11 +161,22 @@ export const createJobsColumns = ({
     ),
     cell: ({ row }) => {
       const job = row.original
-      const location = job.custom_location || 
-        (job.location && job.location[0] ? 
-          `${job.location[0].city || ''}${job.location[0].state ? `, ${job.location[0].state}` : ''}` 
-          : 'Remote')
-      return <span className="text-sm">{location}</span>
+      let location = job.custom_location
+      
+      if (!location && job.location && Array.isArray(job.location) && job.location.length > 0) {
+        const loc = job.location[0]
+        const parts = []
+        if (loc.city) parts.push(loc.city)
+        if (loc.state) parts.push(loc.state)
+        if (loc.country && loc.country !== 'United States') parts.push(loc.country)
+        location = parts.join(', ')
+      }
+      
+      if (!location && job.is_remote) {
+        location = 'Remote'
+      }
+      
+      return <span className="text-sm">{location || 'Not specified'}</span>
     },
     enableHiding: true,
   },
@@ -117,9 +187,13 @@ export const createJobsColumns = ({
     ),
     cell: ({ row }) => {
       const type = row.getValue("employment_type") as string
+      const displayType = type ? type.replace(/_/g, '-').toLowerCase()
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join('-') : 'Not specified'
       return (
         <Badge variant="outline" className="font-normal">
-          {type || 'Not specified'}
+          {displayType}
         </Badge>
       )
     },
@@ -164,7 +238,12 @@ export const createJobsColumns = ({
         return <span className="text-sm text-muted-foreground">-</span>
       }
       
-      const formatSalary = (amount: number) => {
+      const formatSalary = (amount: number, period?: string) => {
+        // Check if it's hourly rate (typically < 200)
+        if (period === 'hour' || (amount < 200 && !period)) {
+          return `$${amount}/hour`
+        }
+        // Otherwise format as annual salary
         if (amount >= 1000) {
           return `$${Math.round(amount / 1000)}k`
         }
@@ -173,19 +252,16 @@ export const createJobsColumns = ({
       
       let salaryText = ''
       if (job.salary_min && job.salary_max) {
-        salaryText = `${formatSalary(job.salary_min)} - ${formatSalary(job.salary_max)}`
+        salaryText = `${formatSalary(job.salary_min, job.salary_period)} - ${formatSalary(job.salary_max, job.salary_period)}`
       } else if (job.salary_min) {
-        salaryText = `${formatSalary(job.salary_min)}+`
+        salaryText = `${formatSalary(job.salary_min, job.salary_period)}+`
       } else if (job.salary_max) {
-        salaryText = `Up to ${formatSalary(job.salary_max)}`
+        salaryText = `Up to ${formatSalary(job.salary_max, job.salary_period)}`
       }
       
       return (
         <div className="text-sm">
           {salaryText}
-          {job.salary_period && (
-            <span className="text-muted-foreground">/{job.salary_period}</span>
-          )}
         </div>
       )
     },
@@ -249,6 +325,74 @@ export const createJobsColumns = ({
     enableHiding: true,
   },
   {
+    id: "cpc",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="CPC" />
+    ),
+    cell: ({ row }) => {
+      const job = row.original
+      // Assuming CPC is calculated or stored somewhere in the data
+      // For now, showing a placeholder - update when CPC data is available
+      const cpc = job.morningbrew?.cpc || null
+      return (
+        <div className="text-center text-sm">
+          {cpc ? (
+            <span className="font-medium">${cpc.toFixed(2)}</span>
+          ) : (
+            <span className="text-muted-foreground">—</span>
+          )}
+        </div>
+      )
+    },
+    enableHiding: true,
+  },
+  {
+    id: "mb_published",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="MB Published" />
+    ),
+    cell: ({ row }) => {
+      const job = row.original
+      const publishedAt = job.morningbrew?.published_at
+      
+      if (!publishedAt || !job.is_morningbrew) {
+        return <span className="text-sm text-muted-foreground">—</span>
+      }
+      
+      const timestamp = publishedAt.toString().length <= 10 ? publishedAt * 1000 : publishedAt
+      const date = new Date(timestamp)
+      const now = new Date()
+      const diffTime = Math.abs(now.getTime() - date.getTime())
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+      
+      let timeAgo = ''
+      if (diffDays === 0) {
+        timeAgo = 'Today'
+      } else if (diffDays === 1) {
+        timeAgo = 'Yesterday'
+      } else if (diffDays < 7) {
+        timeAgo = `${diffDays}d ago`
+      } else {
+        const weeks = Math.floor(diffDays / 7)
+        timeAgo = `${weeks}w ago`
+      }
+      
+      return (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <span className="text-sm">{timeAgo}</span>
+            </TooltipTrigger>
+            <TooltipContent>
+              Published: {date.toLocaleDateString()}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )
+    },
+    enableHiding: true,
+  },
+  {
     id: "morningbrew_brands",
     accessorFn: row => {
       if (!row.is_morningbrew || !row.morningbrew?.community_ids) return []
@@ -266,6 +410,20 @@ export const createJobsColumns = ({
       
       return (
         <div className="flex flex-wrap items-center gap-1">
+          {job.morningbrew?.status && (
+            <Badge 
+              variant="outline"
+              className={`text-xs ${
+                job.morningbrew.status === 'published' 
+                  ? 'border-green-300 text-green-700'
+                  : job.morningbrew.status === 'approved'
+                  ? 'border-blue-300 text-blue-700'
+                  : 'border-gray-300 text-gray-700'
+              }`}
+            >
+              {job.morningbrew.status.charAt(0).toUpperCase() + job.morningbrew.status.slice(1)}
+            </Badge>
+          )}
           {job.morningbrew?.is_priority && (
             <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">
               Priority
