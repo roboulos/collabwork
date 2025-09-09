@@ -4,26 +4,26 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const badgeVariants = cva(
-  "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium transition-all duration-200 hover:scale-105",
+  "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold transition-all duration-200",
   {
     variants: {
       variant: {
         default:
-          "bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 dark:bg-primary/15 dark:hover:bg-primary/25",
+          "bg-primary text-primary-foreground hover:bg-primary/90",
         secondary:
-          "bg-secondary text-secondary-foreground border border-border hover:bg-secondary/80",
+          "bg-muted text-muted-foreground border border-border hover:bg-muted/70 dark:border-border-strong",
         destructive:
-          "bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive/20 dark:bg-destructive/15 dark:hover:bg-destructive/25",
+          "bg-red-100 text-red-700 border border-red-200 hover:bg-red-200 dark:bg-red-950 dark:text-red-400 dark:border-red-900 dark:hover:bg-red-900",
         outline: 
-          "border border-border text-foreground hover:bg-accent hover:text-accent-foreground",
+          "border border-input bg-background text-foreground hover:bg-accent hover:text-accent-foreground",
         success:
-          "bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 hover:bg-emerald-500/20 dark:bg-emerald-500/15 dark:text-emerald-400 dark:hover:bg-emerald-500/25",
+          "bg-emerald-100 text-emerald-700 border border-emerald-200 hover:bg-emerald-200 dark:bg-emerald-950 dark:text-emerald-400 dark:border-emerald-900 dark:hover:bg-emerald-900",
         warning:
-          "bg-amber-500/10 text-amber-700 border border-amber-500/20 hover:bg-amber-500/20 dark:bg-amber-500/15 dark:text-amber-400 dark:hover:bg-amber-500/25",
+          "bg-amber-100 text-amber-700 border border-amber-200 hover:bg-amber-200 dark:bg-amber-950 dark:text-amber-400 dark:border-amber-900 dark:hover:bg-amber-900",
         info:
-          "bg-sky-500/10 text-sky-700 border border-sky-500/20 hover:bg-sky-500/20 dark:bg-sky-500/15 dark:text-sky-400 dark:hover:bg-sky-500/25",
+          "bg-sky-100 text-sky-700 border border-sky-200 hover:bg-sky-200 dark:bg-sky-950 dark:text-sky-400 dark:border-sky-900 dark:hover:bg-sky-900",
         purple:
-          "bg-purple-500/10 text-purple-700 border border-purple-500/20 hover:bg-purple-500/20 dark:bg-purple-500/15 dark:text-purple-400 dark:hover:bg-purple-500/25",
+          "bg-purple-100 text-purple-700 border border-purple-200 hover:bg-purple-200 dark:bg-purple-950 dark:text-purple-400 dark:border-purple-900 dark:hover:bg-purple-900",
       },
     },
     defaultVariants: {

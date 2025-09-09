@@ -492,6 +492,12 @@ export const createJobsColumnsV3 = ({
       )
     },
     enableHiding: true,
+    enableSorting: true,
+    sortingFn: (rowA, rowB) => {
+      const a = rowA.original.morningbrew?.click_count || 0
+      const b = rowB.original.morningbrew?.click_count || 0
+      return a - b
+    },
   },
   {
     id: "cpc",
@@ -527,6 +533,12 @@ export const createJobsColumnsV3 = ({
       )
     },
     enableHiding: true,
+    enableSorting: true,
+    sortingFn: (rowA, rowB) => {
+      const a = rowA.original.cpc || 0
+      const b = rowB.original.cpc || 0
+      return a - b
+    },
   },
   {
     id: "cpa",
@@ -562,6 +574,12 @@ export const createJobsColumnsV3 = ({
       )
     },
     enableHiding: true,
+    enableSorting: true,
+    sortingFn: (rowA, rowB) => {
+      const a = rowA.original.cpa || 0
+      const b = rowB.original.cpa || 0
+      return a - b
+    },
   },
   {
     id: "source",
@@ -591,6 +609,12 @@ export const createJobsColumnsV3 = ({
       )
     },
     enableHiding: true,
+    enableSorting: true,
+    sortingFn: (rowA, rowB) => {
+      const a = rowA.original.post_type || ''
+      const b = rowB.original.post_type || ''
+      return a.localeCompare(b)
+    },
   },
   {
     id: "mb_status",
@@ -609,34 +633,34 @@ export const createJobsColumnsV3 = ({
       
       const statusConfig: Record<string, { 
         label: string; 
-        className: string;
+        variant: "default" | "secondary" | "destructive" | "outline" | "success" | "warning" | "info" | "purple" | null;
       }> = {
         draft: { 
           label: 'Draft', 
-          className: 'bg-gray-100 text-gray-700 border-gray-300'
+          variant: 'secondary'
         },
         approved: { 
           label: 'Approved', 
-          className: 'bg-green-100 text-green-700 border-green-300'
+          variant: 'success'
         },
         published: { 
           label: 'Published', 
-          className: 'bg-blue-100 text-blue-700 border-blue-300'
+          variant: 'info'
         },
         archived: { 
           label: 'Archived', 
-          className: 'bg-gray-200 text-gray-600 border-gray-400'
+          variant: 'outline'
         }
       }
       
       const config = statusConfig[status] || { 
         label: status, 
-        className: 'bg-gray-100 text-gray-700 border-gray-300'
+        variant: 'secondary' as const
       }
       
       return (
         <div className="flex flex-col items-start gap-1">
-          <Badge className={`${config.className} border text-xs`}>
+          <Badge variant={config.variant} className="text-xs">
             {config.label}
           </Badge>
           {publishedAt && status === 'published' && (
@@ -648,6 +672,12 @@ export const createJobsColumnsV3 = ({
       )
     },
     enableHiding: true,
+    enableSorting: true,
+    sortingFn: (rowA, rowB) => {
+      const statusA = rowA.original.morningbrew?.status || 'zzz'
+      const statusB = rowB.original.morningbrew?.status || 'zzz'
+      return statusA.localeCompare(statusB)
+    },
   },
   {
     id: "morningbrew_brands",
@@ -672,7 +702,7 @@ export const createJobsColumnsV3 = ({
       return (
         <div className="flex flex-wrap items-center gap-1">
           {job.morningbrew?.is_priority && (
-            <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-800">
+            <Badge variant="warning" className="font-semibold">
               Priority
             </Badge>
           )}
@@ -704,6 +734,12 @@ export const createJobsColumnsV3 = ({
       return value.some((v: string) => brandIds.includes(v))
     },
     enableHiding: true,
+    enableSorting: true,
+    sortingFn: (rowA, rowB) => {
+      const brandsA = rowA.original.morningbrew?.community_ids?.length || 0
+      const brandsB = rowB.original.morningbrew?.community_ids?.length || 0
+      return brandsA - brandsB
+    },
   },
   {
     id: "actions",
