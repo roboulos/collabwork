@@ -477,6 +477,7 @@ export const createJobsColumnsV3 = ({
   },
   {
     id: "clicks",
+    accessorFn: row => row.morningbrew?.click_count || 0,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Clicks" />
     ),
@@ -492,15 +493,10 @@ export const createJobsColumnsV3 = ({
       )
     },
     enableHiding: true,
-    enableSorting: true,
-    sortingFn: (rowA, rowB) => {
-      const a = rowA.original.morningbrew?.click_count || 0
-      const b = rowB.original.morningbrew?.click_count || 0
-      return a - b
-    },
   },
   {
     id: "cpc",
+    accessorFn: row => row.cpc || 0,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="CPC" />
     ),
@@ -533,15 +529,10 @@ export const createJobsColumnsV3 = ({
       )
     },
     enableHiding: true,
-    enableSorting: true,
-    sortingFn: (rowA, rowB) => {
-      const a = rowA.original.cpc || 0
-      const b = rowB.original.cpc || 0
-      return a - b
-    },
   },
   {
     id: "cpa",
+    accessorFn: row => row.cpa || 0,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="CPA" />
     ),
@@ -574,15 +565,10 @@ export const createJobsColumnsV3 = ({
       )
     },
     enableHiding: true,
-    enableSorting: true,
-    sortingFn: (rowA, rowB) => {
-      const a = rowA.original.cpa || 0
-      const b = rowB.original.cpa || 0
-      return a - b
-    },
   },
   {
     id: "source",
+    accessorFn: row => row.post_type || 'Unknown',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Source" />
     ),
@@ -609,15 +595,10 @@ export const createJobsColumnsV3 = ({
       )
     },
     enableHiding: true,
-    enableSorting: true,
-    sortingFn: (rowA, rowB) => {
-      const a = rowA.original.post_type || ''
-      const b = rowB.original.post_type || ''
-      return a.localeCompare(b)
-    },
   },
   {
     id: "mb_status",
+    accessorFn: row => row.morningbrew?.status || 'zzz_not_in_mb',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="MB Status" />
     ),
@@ -672,12 +653,6 @@ export const createJobsColumnsV3 = ({
       )
     },
     enableHiding: true,
-    enableSorting: true,
-    sortingFn: (rowA, rowB) => {
-      const statusA = rowA.original.morningbrew?.status || 'zzz'
-      const statusB = rowB.original.morningbrew?.status || 'zzz'
-      return statusA.localeCompare(statusB)
-    },
   },
   {
     id: "morningbrew_brands",
@@ -734,12 +709,6 @@ export const createJobsColumnsV3 = ({
       return value.some((v: string) => brandIds.includes(v))
     },
     enableHiding: true,
-    enableSorting: true,
-    sortingFn: (rowA, rowB) => {
-      const brandsA = rowA.original.morningbrew?.community_ids?.length || 0
-      const brandsB = rowB.original.morningbrew?.community_ids?.length || 0
-      return brandsA - brandsB
-    },
   },
   {
     id: "actions",
