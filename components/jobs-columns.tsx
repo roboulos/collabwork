@@ -136,7 +136,7 @@ export const createJobsColumns = ({
               <span className="text-xs text-muted-foreground mr-1">Skills:</span>
               {job.ai_skills.slice(0, 4).map((skill: string, index: number) => (
                 <span key={index} className="text-xs text-muted-foreground">
-                  {skill}{index < Math.min(job.ai_skills.length - 1, 3) && ','}
+                  {skill}{index < Math.min(job.ai_skills!.length - 1, 3) && ','}
                 </span>
               ))}
               {job.ai_skills.length > 4 && (

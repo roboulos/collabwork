@@ -27,7 +27,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Checkbox } from './ui/checkbox'
-import { Badge } from './ui/badge'
 import { xanoService, JobPosting, Community } from '@/lib/xano'
 import { Loader2 } from 'lucide-react'
 import { createJobsColumns } from './jobs-columns'
@@ -297,7 +296,7 @@ export function JobTableEnhancedV2() {
             <DataTableToolbar 
               table={table} 
               onAddJobs={handleAddJobs}
-              filterColumn="title"
+              filterColumn="ai_title"
               brandOptions={communities.map(c => ({ 
                 value: c.id.toString(), 
                 label: c.community_name 
