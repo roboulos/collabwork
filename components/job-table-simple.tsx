@@ -30,6 +30,10 @@ type ColumnVisibility = {
   location: boolean
   employment: boolean
   remote: boolean
+  salary: boolean
+  posted: boolean
+  clicks: boolean
+  description: boolean
   status: boolean
 }
 
@@ -50,6 +54,10 @@ export function JobTableSimple() {
     location: true,
     employment: true,
     remote: true,
+    salary: false,
+    posted: true,
+    clicks: true,
+    description: false,
     status: true,
   })
   const [editModalOpen, setEditModalOpen] = useState(false)
@@ -536,6 +544,18 @@ export function JobTableSimple() {
                 {columnVisibility.remote && (
                   <TableHead className="hidden xl:table-cell w-[100px]">Remote</TableHead>
                 )}
+                {columnVisibility.salary && (
+                  <TableHead className="hidden xl:table-cell">Salary</TableHead>
+                )}
+                {columnVisibility.posted && (
+                  <TableHead className="hidden lg:table-cell">Posted</TableHead>
+                )}
+                {columnVisibility.clicks && (
+                  <TableHead className="hidden xl:table-cell text-center">Clicks</TableHead>
+                )}
+                {columnVisibility.description && (
+                  <TableHead className="hidden 2xl:table-cell">Description</TableHead>
+                )}
                 {columnVisibility.status && (
                   <TableHead className="text-right">Status</TableHead>
                 )}
@@ -626,6 +646,94 @@ export function JobTableSimple() {
                       )}
                     </TableCell>
                   )}
+                  {columnVisibility.salary && (
+                    <TableCell className="hidden xl:table-cell">
+                      {(() => {
+                        if (!job.salary_min && !job.salary_max) {
+                          return <span className="text-muted-foreground text-sm">-</span>
+                        }
+                        
+                        const formatSalary = (amount: number) => {
+                          if (amount >= 1000) {
+                            return `$${Math.round(amount / 1000)}k`
+                          }
+                          return `$${amount}`
+                        }
+                        
+                        if (job.salary_min && job.salary_max) {
+                          return (
+                            <div className="text-sm">
+                              {formatSalary(job.salary_min)} - {formatSalary(job.salary_max)}
+                              {job.salary_period && <span className="text-muted-foreground">/{job.salary_period}</span>}
+                            </div>
+                          )
+                        } else if (job.salary_min) {
+                          return (
+                            <div className="text-sm">
+                              {formatSalary(job.salary_min)}+
+                              {job.salary_period && <span className="text-muted-foreground">/{job.salary_period}</span>}
+                            </div>
+                          )
+                        } else if (job.salary_max) {
+                          return (
+                            <div className="text-sm">
+                              Up to {formatSalary(job.salary_max)}
+                              {job.salary_period && <span className="text-muted-foreground">/{job.salary_period}</span>}
+                            </div>
+                          )
+                        }
+                      })()}
+                    </TableCell>
+                  )}
+                  {columnVisibility.posted && (
+                    <TableCell className="hidden lg:table-cell">
+                      {(() => {
+                        const postedAt = job.posted_at
+                        if (!postedAt) {
+                          return <span className="text-muted-foreground text-sm">-</span>
+                        }
+                        
+                        // Check if the timestamp is in seconds (Unix) or milliseconds
+                        // Unix timestamps in seconds are typically 10 digits, milliseconds are 13
+                        const timestamp = postedAt.toString().length <= 10 ? postedAt * 1000 : postedAt
+                        const date = new Date(timestamp)
+                        const now = new Date()
+                        const diffTime = Math.abs(now.getTime() - date.getTime())
+                        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+                        
+                        if (diffDays === 0) {
+                          return <span className="text-sm">Today</span>
+                        } else if (diffDays === 1) {
+                          return <span className="text-sm">Yesterday</span>
+                        } else if (diffDays < 7) {
+                          return <span className="text-sm">{diffDays}d ago</span>
+                        } else if (diffDays < 30) {
+                          const weeks = Math.floor(diffDays / 7)
+                          return <span className="text-sm">{weeks}w ago</span>
+                        } else if (diffDays < 365) {
+                          const months = Math.floor(diffDays / 30)
+                          return <span className="text-sm">{months}mo ago</span>
+                        } else {
+                          const years = Math.floor(diffDays / 365)
+                          return <span className="text-sm">{years}y ago</span>
+                        }
+                      })()}
+                    </TableCell>
+                  )}
+                  {columnVisibility.clicks && (
+                    <TableCell className="hidden xl:table-cell text-center">
+                      <Badge variant={job.morningbrew?.click_count ? "default" : "secondary"} className="min-w-[2.5rem]">
+                        {job.morningbrew?.click_count || 0}
+                      </Badge>
+                    </TableCell>
+                  )}
+                  {columnVisibility.description && (
+                    <TableCell className="hidden 2xl:table-cell">
+                      <div className="text-sm text-muted-foreground max-w-[200px] truncate" title={job.description}>
+                        {job.ai_description || job.description || 'No description'}
+                      </div>
+                    </TableCell>
+                  )}
                   {columnVisibility.status && (
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
@@ -691,7 +799,7 @@ export function JobTableSimple() {
               ))}
               {filteredAndSortedJobs.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center">
+                  <TableCell colSpan={11} className="h-24 text-center">
                     <p className="text-muted-foreground">
                       {searchQuery ? `No jobs found matching "${searchQuery}"` : 'No jobs found'}
                     </p>

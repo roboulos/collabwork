@@ -17,8 +17,10 @@ export interface JobPosting {
   salary_max?: number;
   salary_period?: string;
   description?: string;
+  ai_description?: string;
   application_url?: string;
   posted_at?: number;
+  created_at?: number;
   custom_company_name?: string;
   custom_location?: string;
   notes?: string;
@@ -27,11 +29,21 @@ export interface JobPosting {
   communities?: string[];
   is_morningbrew?: boolean;
   morningbrew?: {
+    id?: number;
     community_ids: Array<{
       id: number;
       community_name: string;
     }>;
     is_priority?: boolean;
+    status?: string;
+    click_count?: number;
+    published_at?: number;
+    approved_at?: number;
+    archived_at?: number;
+    cached_job_title?: string;
+    cached_company?: string;
+    cached_location?: string;
+    cached_application_url?: string;
   };
 }
 
