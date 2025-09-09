@@ -12,7 +12,7 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-16 items-center justify-center">
-        <div className="flex w-full max-w-7xl items-center justify-between px-4">
+        <div className="flex w-full max-w-7xl items-center justify-center px-4">
           {/* Logo */}
           <div className="mr-8 flex items-center">
             <Link href="/" className="flex items-center space-x-2">
@@ -27,8 +27,8 @@ export function Navbar() {
             </Link>
           </div>
 
-        {/* Navigation */}
-        <NavigationMenu className="hidden md:flex mx-auto">
+        {/* Navigation - Hidden for now */}
+        <NavigationMenu className="hidden">
           <NavigationMenuList>
             <NavigationMenuItem>
               <Link href="/" legacyBehavior passHref>
@@ -70,8 +70,8 @@ export function Navbar() {
           </NavigationMenuList>
         </NavigationMenu>
 
-          {/* Right side */}
-          <div className="ml-auto flex items-center gap-4">
+          {/* Right side - Hidden for now */}
+          <div className="hidden">
             <nav className="hidden items-center gap-1 md:flex">
               <Button variant="ghost" size="sm" className="h-9">
                 <Settings className="mr-2 h-4 w-4" />
