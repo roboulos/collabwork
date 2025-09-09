@@ -35,12 +35,64 @@
     --radius: 0.5rem;
   }
 
+  .dark {
+    color-scheme: dark;
+
+    /* Surfaces */
+    --background: 222 22% 10%;         /* base page bg */
+    --foreground: 220 14% 96%;         /* primary text */
+
+    --card: 222 18% 14%;               /* elevated panels/cards */
+    --card-foreground: 220 14% 96%;
+
+    --popover: 222 20% 12%;
+    --popover-foreground: 220 14% 96%;
+
+    /* Brand / Actions */
+    --primary: 160 84% 39%;            /* emerald-500 */
+    --primary-foreground: 210 40% 98%; /* near-white for legibility */
+
+    /* Subtle surfaces / controls */
+    --secondary: 220 14% 22%;          /* subtle surface (chips, toggles) */
+    --secondary-foreground: 220 13% 90%;
+
+    /* Muted text & fills */
+    --muted: 220 14% 22%;
+    --muted-foreground: 215 20% 65%;
+
+    /* Accent hover/active tint for list/table rows, buttons on hover */
+    --accent: 217 16% 28%;
+    --accent-foreground: 210 40% 98%;
+
+    /* Danger */
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 210 40% 98%;
+
+    /* Strokes/Inputs/Focus */
+    --border: 215 18% 23%;
+    --input: 215 18% 23%;
+    --ring: 160 84% 39%;               /* match brand for focus */
+
+    --radius: 0.5rem;
+  }
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
   }
+
+  /* Better, consistent focus rings */
+  :focus-visible {
+    @apply outline-none ring-2 ring-offset-2 ring-offset-background ring-ring/50;
+  }
+
+  /* Text selection looks on-brand but subtle */
+  ::selection {
+    background-color: hsl(var(--primary) / 0.25);
+    color: hsl(var(--foreground));
+  }
+
   body {
     @apply bg-background text-foreground;
   }

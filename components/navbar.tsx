@@ -7,10 +7,11 @@ import { Button } from '@/components/ui/button'
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle } from '@/components/ui/navigation-menu'
 import { cn } from '@/lib/utils'
 import { Briefcase, Users, BarChart3, Settings, HelpCircle } from 'lucide-react'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 export function Navbar() {
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-gradient-to-b from-background/85 to-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/50">
       <div className="flex h-16 items-center justify-center">
         <div className="flex w-full max-w-7xl items-center px-4">
           {/* Logo */}
@@ -21,7 +22,7 @@ export function Navbar() {
                 alt="CollabWork" 
                 width={240} 
                 height={58}
-                className="h-12 w-auto"
+                className="h-12 w-auto dark:invert"
                 priority
               />
             </Link>
@@ -88,6 +89,11 @@ export function Navbar() {
             <Button className="h-9">
               Add Jobs
             </Button>
+          </div>
+
+          {/* Theme Toggle - Always visible */}
+          <div className="ml-auto flex items-center">
+            <ThemeToggle />
           </div>
         </div>
       </div>

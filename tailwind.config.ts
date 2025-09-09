@@ -1,6 +1,8 @@
 import type { Config } from "tailwindcss";
+import tailwindcssAnimate from "tailwindcss-animate";
 
 const config: Config = {
+  darkMode: ["class"],
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -69,9 +71,15 @@ const config: Config = {
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
   			'accordion-up': 'accordion-up 0.2s ease-out'
+  		},
+  		boxShadow: {
+  			// subtle surface elevations that look good in dark mode
+  			'elevation-1': '0 1px 2px rgba(2, 6, 23, 0.25), 0 1px 1px -1px rgba(2, 6, 23, 0.25)',
+  			'elevation-2': '0 6px 24px rgba(0, 0, 0, 0.35)',
+  			'glow': '0 0 0 3px hsl(var(--ring) / 0.25)',
   		}
   	}
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [tailwindcssAnimate],
 };
 export default config;

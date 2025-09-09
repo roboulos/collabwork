@@ -350,7 +350,7 @@ export function JobTableEnhancedV3() {
         />
       )}
       
-      <Card>
+      <Card className="shadow-elevation-1 dark:shadow-elevation-2 border-border/60">
         <div className="p-4">
           <div className="mb-4">
             <h2 className="text-2xl font-bold tracking-tight">Job Postings</h2>
@@ -370,9 +370,9 @@ export function JobTableEnhancedV3() {
               }))}
             />
             
-            <div className="rounded-md border">
+            <div className="rounded-lg border border-border/60 bg-card/60 shadow-sm">
               <Table>
-                <TableHeader>
+                <TableHeader className="bg-card/70">
                   {table.getHeaderGroups().map((headerGroup) => (
                     <TableRow key={headerGroup.id}>
                       {headerGroup.headers.map((header) => {
@@ -409,10 +409,20 @@ export function JobTableEnhancedV3() {
                         }}
                         className={cn(
                           "cursor-pointer transition-colors",
-                          row.original.morningbrew?.is_priority && "bg-yellow-50/50 hover:bg-yellow-50",
-                          row.original.is_morningbrew && !row.original.morningbrew?.is_priority && "bg-blue-50/30 hover:bg-blue-50/50",
-                          !row.original.is_morningbrew && "hover:bg-muted/50",
-                          row.getIsSelected() && "bg-gray-100"
+                          // Priority: warm amber tint
+                          row.original.morningbrew?.is_priority &&
+                            "bg-amber-100/60 hover:bg-amber-100 dark:bg-amber-500/10 dark:hover:bg-amber-500/15",
+                          
+                          // MorningBrew (non-priority): cool sky tint
+                          row.original.is_morningbrew && !row.original.morningbrew?.is_priority &&
+                            "bg-sky-50/40 hover:bg-sky-50 dark:bg-sky-500/10 dark:hover:bg-sky-500/15",
+                          
+                          // Default hover
+                          !row.original.is_morningbrew &&
+                            "hover:bg-accent/40 dark:hover:bg-accent/35",
+                          
+                          // Selection: subtle ring and surface, not a flat solid fill
+                          "data-[state=selected]:ring-2 data-[state=selected]:ring-primary/40 data-[state=selected]:ring-offset-1 data-[state=selected]:ring-offset-background"
                         )}
                       >
                         {row.getVisibleCells().map((cell) => (
