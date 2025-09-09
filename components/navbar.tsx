@@ -21,7 +21,7 @@ export function Navbar() {
                 alt="CollabWork" 
                 width={240} 
                 height={58}
-                className="h-12 w-auto dark:invert"
+                className="h-12 w-auto"
                 priority
               />
             </Link>
