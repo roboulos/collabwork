@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { JobPosting } from "@/lib/xano"
 import { DataTableColumnHeader } from "./data-table/data-table-column-header"
 import { Star, X, Copy, ExternalLink, Check, XIcon } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { 
   Tooltip,
   TooltipContent,
@@ -436,29 +437,22 @@ export const createJobsColumnsV3 = ({
       const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
       
       let timeAgo = ''
-      let badgeColor = ''
       
       if (diffDays === 0) {
         timeAgo = 'Today'
-        badgeColor = 'bg-green-50 text-green-700 border-green-300'
       } else if (diffDays === 1) {
         timeAgo = 'Yesterday'
-        badgeColor = 'bg-green-50 text-green-700 border-green-300'
       } else if (diffDays < 7) {
         timeAgo = `${diffDays}d ago`
-        badgeColor = 'bg-blue-50 text-blue-700 border-blue-300'
       } else if (diffDays < 30) {
         const weeks = Math.floor(diffDays / 7)
         timeAgo = `${weeks}w ago`
-        badgeColor = diffDays > 14 ? 'bg-yellow-50 text-yellow-700 border-yellow-300' : ''
       } else if (diffDays < 365) {
         const months = Math.floor(diffDays / 30)
         timeAgo = `${months}mo ago`
-        badgeColor = 'bg-red-50 text-red-700 border-red-300'
       } else {
         const years = Math.floor(diffDays / 365)
         timeAgo = `${years}y ago`
-        badgeColor = 'bg-gray-100 text-gray-600 border-gray-300'
       }
       
       return (
@@ -495,6 +489,36 @@ export const createJobsColumnsV3 = ({
     enableHiding: true,
   },
   {
+    id: "source",
+    accessorFn: row => row.source || row.feed_id || 'Unknown',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Source" />
+    ),
+    cell: ({ row }) => {
+      const job = row.original
+      const source = job.source || `Feed ${job.feed_id}` || 'Unknown'
+      // Check if source name indicates payment type
+      const isCPA = source.toLowerCase().includes('cpa')
+      const isCPC = source.toLowerCase().includes('cpc')
+      
+      return (
+        <div className="text-sm">
+          <Badge 
+            variant="outline" 
+            className={cn(
+              "font-normal",
+              isCPA && "border-purple-300 text-purple-700",
+              isCPC && "border-blue-300 text-blue-700"
+            )}
+          >
+            {source}
+          </Badge>
+        </div>
+      )
+    },
+    enableHiding: true,
+  },
+  {
     id: "cpc",
     accessorFn: row => row.cpc || 0,
     header: ({ column }) => (
@@ -503,22 +527,27 @@ export const createJobsColumnsV3 = ({
     cell: ({ row }) => {
       const job = row.original
       const cpc = job.cpc
+      const source = job.source || `Feed ${job.feed_id}` || ''
+      const isPaidOnCPC = source.toLowerCase().includes('cpc')
+      
       return (
         <div className="text-center text-sm">
           {cpc !== undefined && cpc !== null ? (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger>
-                  <span className={`font-medium ${
-                    cpc > 1 ? 'text-green-600' : 
-                    cpc > 0.5 ? 'text-yellow-600' : 
-                    'text-gray-600'
-                  }`}>
+                  <span className={cn(
+                    "font-medium",
+                    isPaidOnCPC ? "text-blue-600 font-semibold" : "text-gray-600",
+                    cpc > 1 && isPaidOnCPC && "text-blue-700",
+                    cpc > 0.5 && isPaidOnCPC && "text-blue-600"
+                  )}>
                     ${cpc.toFixed(2)}
                   </span>
                 </TooltipTrigger>
                 <TooltipContent>
-                  Cost Per Click: ${cpc.toFixed(2)}
+                  <p>Cost Per Click: ${cpc.toFixed(2)}</p>
+                  {isPaidOnCPC && <p className="text-xs text-blue-600">✓ Paid on CPC</p>}
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -539,22 +568,27 @@ export const createJobsColumnsV3 = ({
     cell: ({ row }) => {
       const job = row.original
       const cpa = job.cpa
+      const source = job.source || `Feed ${job.feed_id}` || ''
+      const isPaidOnCPA = source.toLowerCase().includes('cpa')
+      
       return (
         <div className="text-center text-sm">
           {cpa !== undefined && cpa !== null && cpa > 0 ? (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger>
-                  <span className={`font-medium ${
-                    cpa > 5 ? 'text-green-600' : 
-                    cpa > 1 ? 'text-yellow-600' : 
-                    'text-gray-600'
-                  }`}>
+                  <span className={cn(
+                    "font-medium",
+                    isPaidOnCPA ? "text-purple-600 font-semibold" : "text-gray-600",
+                    cpa > 5 && isPaidOnCPA && "text-purple-700",
+                    cpa > 1 && isPaidOnCPA && "text-purple-600"
+                  )}>
                     ${cpa.toFixed(2)}
                   </span>
                 </TooltipTrigger>
                 <TooltipContent>
-                  Cost Per Acquisition: ${cpa.toFixed(2)}
+                  <p>Cost Per Acquisition: ${cpa.toFixed(2)}</p>
+                  {isPaidOnCPA && <p className="text-xs text-purple-600">✓ Paid on CPA</p>}
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

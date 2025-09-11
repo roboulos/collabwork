@@ -41,6 +41,7 @@ export interface JobPosting {
   execution_id?: number;
   partner_id?: number;
   feed_id?: number;
+  source?: string;
   custom_company_name?: string;
   custom_location?: string;
   notes?: string;

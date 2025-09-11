@@ -47,6 +47,9 @@ export function JobTableEnhancedV3() {
     is_remote: false,
     salary: false,
     description: false,
+    cpc: true,
+    cpa: true,
+    source: true,
   })
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
@@ -225,7 +228,7 @@ export function JobTableEnhancedV3() {
     try {
       await navigator.clipboard.writeText(formattedText)
       setToast({ message: 'Copied to clipboard', type: 'success' })
-    } catch (error) {
+    } catch (err) {
       setToast({ message: 'Failed to copy', type: 'error' })
     }
   }

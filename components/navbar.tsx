@@ -6,10 +6,18 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle } from '@/components/ui/navigation-menu'
 import { cn } from '@/lib/utils'
-import { Briefcase, Users, BarChart3, Settings, HelpCircle } from 'lucide-react'
+import { Briefcase, Users, BarChart3, Settings, HelpCircle, LogOut } from 'lucide-react'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { useRouter } from 'next/navigation'
 
 export function Navbar() {
+  const router = useRouter();
+  
+  const handleLogout = () => {
+    localStorage.removeItem('admin_auth_token');
+    localStorage.removeItem('admin_user');
+    router.push('/auth/login');
+  };
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-gradient-to-b from-background/85 to-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/50">
       <div className="flex h-16 items-center justify-center">
@@ -91,9 +99,18 @@ export function Navbar() {
             </Button>
           </div>
 
-          {/* Theme Toggle - Always visible */}
-          <div className="ml-auto flex items-center">
+          {/* Theme Toggle and Logout - Always visible */}
+          <div className="ml-auto flex items-center gap-2">
             <ThemeToggle />
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleLogout}
+              className="h-9"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
+            </Button>
           </div>
         </div>
       </div>
