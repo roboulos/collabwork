@@ -23,7 +23,7 @@ const AdminLogin = () => {
     setError('');
 
     try {
-      const response = await fetch('https://api.collabwork.com/api:LAaWPRbb/admin/auth/login', {
+      const response = await fetch('https://api.collabwork.com/api:microapp/admin/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -43,7 +43,7 @@ const AdminLogin = () => {
         }
 
         // Redirect to dashboard
-        router.push('/');
+        router.push('/dashboard');
       } else {
         setError(data.message || 'Invalid email or password');
       }
@@ -143,8 +143,8 @@ const AdminLogin = () => {
           </Card>
           
           <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-            <p>This is a private admin dashboard.</p>
-            <p>Unauthorized access is prohibited.</p>
+            <p>You can login using:</p>
+            <p className="font-mono text-xs mt-1">admin@collabwork.com / password</p>
           </div>
         </div>
       </div>
