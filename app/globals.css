@@ -221,6 +221,15 @@
   }
 }
 
+@keyframes aurora-background {
+  0% {
+    background-position: 50% 50%, 50% 50%;
+  }
+  100% {
+    background-position: 350% 50%, 350% 50%;
+  }
+}
+
 /* Animation utilities */
 .animate-slide-up {
   animation: slide-up 0.3s var(--ease-out-expo);
@@ -252,6 +261,11 @@
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* Aurora background animation */
+.animate-aurora-background {
+  animation: aurora-background 20s linear infinite;
 }
 
 /* Skeleton loading */
