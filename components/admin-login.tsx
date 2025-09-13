@@ -144,7 +144,7 @@ const AdminLogin = () => {
           
           <div className="text-center text-sm text-gray-600 dark:text-gray-400">
             <p>You can login using:</p>
-            <p className="font-mono text-xs mt-1">admin@collabwork.com / password</p>
+            <p className="font-mono text-xs mt-1">testadmin@collabwork.com / password</p>
           </div>
         </div>
       </div>
