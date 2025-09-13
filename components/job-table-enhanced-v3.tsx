@@ -396,7 +396,7 @@ export function JobTableEnhancedV3() {
                       {headerGroup.headers.map((header) => {
                         return (
                           <TableHead 
-                            key={header.id} 
+                            key={`${headerGroup.id}_${header.id}`} 
                             colSpan={header.colSpan}
                             style={{ width: header.getSize() }}
                             className="relative"
