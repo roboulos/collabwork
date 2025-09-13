@@ -367,7 +367,7 @@ export function JobTableEnhancedV3() {
         />
       )}
       
-      <Card className="shadow-elevation-1 dark:shadow-elevation-2 border-border/60">
+      <Card className="shadow-lg backdrop-blur-sm bg-white/90 dark:bg-gray-900/90 border border-gray-200 dark:border-gray-800">
         <div className="p-4">
           <div className="mb-4">
             <h2 className="text-2xl font-bold tracking-tight">Job Postings</h2>
@@ -387,10 +387,10 @@ export function JobTableEnhancedV3() {
               }))}
             />
             
-            <div className="rounded-lg border border-border/60 bg-card/60 shadow-sm overflow-hidden">
+            <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-sm overflow-hidden">
               <div className="max-h-[calc(100vh-300px)] overflow-auto">
                 <Table>
-                  <TableHeader className="bg-card/70 sticky top-0 z-10 backdrop-blur-sm border-b border-border">
+                  <TableHeader className="bg-white/90 dark:bg-gray-800/90 sticky top-0 z-10 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700">
                   {table.getHeaderGroups().map((headerGroup) => (
                     <TableRow key={headerGroup.id}>
                       {headerGroup.headers.map((header) => {
@@ -549,6 +549,7 @@ export function JobTableEnhancedV3() {
             <Button 
               onClick={handleSubmit} 
               disabled={selectedCommunities.size === 0 || submitting}
+              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white"
             >
               {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Add to Selected Brands

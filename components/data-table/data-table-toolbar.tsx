@@ -59,6 +59,7 @@ export function DataTableToolbar<TData>({
               onClick={onAddJobs}
               disabled={!table.getFilteredSelectedRowModel().rows.length}
               size="default"
+              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white"
             >
               <Plus className="mr-2 h-4 w-4" />
               Add to MorningBrew
