@@ -465,7 +465,7 @@ export function JobTableEnhancedV3() {
                         )}
                       >
                         {row.getVisibleCells().map((cell) => (
-                          <TableCell key={cell.id}>
+                          <TableCell key={`${row.id}_${cell.column.id}`}>
                             {flexRender(
                               cell.column.columnDef.cell,
                               cell.getContext()
