@@ -489,7 +489,7 @@ export const createJobsColumnsV3 = ({
     enableHiding: true,
   },
   {
-    id: "source",
+    id: "payment_source",
     accessorFn: row => row.source || row.feed_id || 'Unknown',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Source" />
@@ -601,7 +601,7 @@ export const createJobsColumnsV3 = ({
     enableHiding: true,
   },
   {
-    id: "source",
+    id: "post_source",
     accessorFn: row => row.post_type || 'Unknown',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Source" />
