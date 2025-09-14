@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   ColumnFiltersState,
   SortingState,
@@ -78,9 +78,12 @@ export function JobTableEnhancedV3() {
   const [editValue, setEditValue] = useState('')
 
   useEffect(() => {
-    loadJobs()
     loadCommunities()
   }, [])
+
+  useEffect(() => {
+    loadJobs()
+  }, [showMorningBrewOnly]) // Reload when toggle changes
 
   const loadCommunities = async () => {
     try {
@@ -94,8 +97,53 @@ export function JobTableEnhancedV3() {
   const loadJobs = async () => {
     try {
       setLoading(true)
-      const response = await xanoService.listJobs(0)
-      setJobs(response.items || [])
+      if (showMorningBrewOnly) {
+        // Load Morning Brew curated jobs
+        const response = await xanoService.listMorningBrewJobs(1, '')
+        // Transform the data to match our JobPosting interface
+        const transformedJobs = (response.items || []).map((mbJob: {
+          id: number;
+          job_posting_id: number;
+          company?: string;
+          title?: string;
+          location?: Array<{
+            city?: string;
+            state?: string;
+            country?: string;
+          }>;
+          status?: string;
+          click_count?: number;
+          community_ids?: number[];
+          formatted_title?: string;
+          is_source_deleted?: boolean;
+          job_posting?: JobPosting;
+        }) => ({
+          id: mbJob.job_posting_id,
+          company: mbJob.company || mbJob.job_posting?.company || '',
+          title: mbJob.title || mbJob.job_posting?.title || '',
+          ai_title: mbJob.title || mbJob.job_posting?.ai_title || '',
+          location: mbJob.location || mbJob.job_posting?.location || [],
+          is_morningbrew: true,
+          morningbrew: {
+            id: mbJob.id,
+            status: mbJob.status,
+            click_count: mbJob.click_count || 0,
+            community_ids: (mbJob.community_ids || []).map((id: number) => ({
+              id: id,
+              community_name: communities.find(c => c.id === id)?.community_name || `Brand ${id}`
+            })),
+            formatted_title: mbJob.formatted_title,
+            is_source_deleted: mbJob.is_source_deleted
+          },
+          // Include other fields if they exist
+          ...mbJob.job_posting
+        }))
+        setJobs(transformedJobs)
+      } else {
+        // Load all jobs from feeds
+        const response = await xanoService.listJobs(0)
+        setJobs(response.items || [])
+      }
     } catch (error) {
       console.error('Error loading jobs:', error)
     } finally {
@@ -235,7 +283,7 @@ export function JobTableEnhancedV3() {
     try {
       await navigator.clipboard.writeText(formattedText)
       setToast({ message: 'Copied to clipboard', type: 'success' })
-    } catch (err) {
+    } catch {
       setToast({ message: 'Failed to copy', type: 'error' })
     }
   }
@@ -318,16 +366,8 @@ export function JobTableEnhancedV3() {
     onCancelEdit: handleCancelEdit
   }), [editingCell, editValue])
 
-  // Filter jobs based on Morning Brew view toggle
-  const filteredJobs = useMemo(() => {
-    if (showMorningBrewOnly) {
-      return jobs.filter(job => job.is_morningbrew === true)
-    }
-    return jobs
-  }, [jobs, showMorningBrewOnly])
-
   const table = useReactTable({
-    data: filteredJobs,
+    data: jobs,
     columns,
     initialState: {
       pagination: {
@@ -392,7 +432,7 @@ export function JobTableEnhancedV3() {
                 </h2>
                 <p className="text-muted-foreground">
                   {showMorningBrewOnly 
-                    ? `Viewing ${filteredJobs.length} jobs curated for Morning Brew`
+                    ? `Viewing ${jobs.length} jobs curated for Morning Brew`
                     : `Manage and curate job listings from ${jobs.length} available positions`
                   }
                 </p>

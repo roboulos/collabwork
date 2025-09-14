@@ -151,6 +151,14 @@ class XanoService {
     });
     return response.data;
   }
+
+  async listMorningBrewJobs(page: number = 1, status: string = '') {
+    const response = await this.axiosInstance.post('/api:microapp/morningbrew/list-all-brands', {
+      page: page,
+      status: status
+    });
+    return response.data;
+  }
 }
 
 export const xanoService = new XanoService();
