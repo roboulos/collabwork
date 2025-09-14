@@ -40,12 +40,12 @@ export function Navbar() {
         <NavigationMenu className="hidden">
           <NavigationMenuList>
             <NavigationMenuItem>
-              <Link href="/" legacyBehavior passHref>
-                <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+              <NavigationMenuLink asChild>
+                <Link href="/" className={navigationMenuTriggerStyle()}>
                   <Briefcase className="mr-2 h-4 w-4" />
                   Jobs
-                </NavigationMenuLink>
-              </Link>
+                </Link>
+              </NavigationMenuLink>
             </NavigationMenuItem>
 
             <NavigationMenuItem>
@@ -69,12 +69,12 @@ export function Navbar() {
             </NavigationMenuItem>
 
             <NavigationMenuItem>
-              <Link href="/analytics" legacyBehavior passHref>
-                <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+              <NavigationMenuLink asChild>
+                <Link href="/analytics" className={navigationMenuTriggerStyle()}>
                   <BarChart3 className="mr-2 h-4 w-4" />
                   Analytics
-                </NavigationMenuLink>
-              </Link>
+                </Link>
+              </NavigationMenuLink>
             </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
