@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import {
   ColumnFiltersState,
   SortingState,
@@ -42,6 +42,7 @@ export function JobTableEnhancedV3() {
   const [loading, setLoading] = useState(true)
   const [rowSelection, setRowSelection] = useState({})
   const [showMorningBrewOnly, setShowMorningBrewOnly] = useState(false)
+  const [isToggling, setIsToggling] = useState(false)
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
     location: false,
     employment_type: false,
@@ -318,9 +319,12 @@ export function JobTableEnhancedV3() {
   }), [editingCell, editValue])
 
   // Filter jobs based on Morning Brew view toggle
-  const filteredJobs = showMorningBrewOnly 
-    ? jobs.filter(job => job.is_morningbrew === true)
-    : jobs
+  const filteredJobs = useMemo(() => {
+    if (showMorningBrewOnly) {
+      return jobs.filter(job => job.is_morningbrew === true)
+    }
+    return jobs
+  }, [jobs, showMorningBrewOnly])
 
   const table = useReactTable({
     data: filteredJobs,
@@ -406,10 +410,23 @@ export function JobTableEnhancedV3() {
                 label: c.community_name 
               }))}
               showMorningBrewOnly={showMorningBrewOnly}
-              onToggleMorningBrewView={setShowMorningBrewOnly}
+              onToggleMorningBrewView={async (value) => {
+                setIsToggling(true)
+                setRowSelection({}) // Reset selection when toggling
+                // Use setTimeout to allow UI to update
+                setTimeout(() => {
+                  setShowMorningBrewOnly(value)
+                  setIsToggling(false)
+                }, 0)
+              }}
             />
             
-            <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-sm overflow-hidden">
+            <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-sm overflow-hidden relative">
+              {isToggling && (
+                <div className="absolute inset-0 bg-white/50 dark:bg-gray-900/50 z-50 flex items-center justify-center">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              )}
               <div className="max-h-[calc(100vh-300px)] overflow-auto">
                 <Table>
                   <TableHeader className="bg-white/90 dark:bg-gray-800/90 sticky top-0 z-10 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700">
