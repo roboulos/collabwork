@@ -138,6 +138,13 @@ class XanoService {
     const response = await this.axiosInstance.get('/api:microapp/communities');
     return response.data;
   }
+
+  async formatJobTitle(jobPostingId: number) {
+    const response = await this.axiosInstance.post('/api:microapp/morningbrew/format-title', {
+      job_posting_id: jobPostingId,
+    });
+    return response.data;
+  }
 }
 
 export const xanoService = new XanoService();

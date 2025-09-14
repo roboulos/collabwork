@@ -30,7 +30,7 @@ import { Checkbox } from './ui/checkbox'
 import { xanoService, JobPosting, Community } from '@/lib/xano'
 import { Loader2 } from 'lucide-react'
 import { TableSkeleton } from './ui/skeleton'
-import { createJobsColumnsV3 } from './jobs-columns-v3'
+import { createJobsColumnsV4 } from './jobs-columns-v4'
 import { DataTableToolbar } from './data-table/data-table-toolbar'
 import { DataTablePagination } from './data-table/data-table-pagination'
 import { cn } from '@/lib/utils'
@@ -49,7 +49,11 @@ export function JobTableEnhancedV3() {
     description: false,
     cpc: true,
     cpa: true,
-    source: true,
+    feed_source: true,
+    mb_status: true,
+    payment_source: false,
+    post_source: false,
+    morningbrew_brands: true,
   })
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
@@ -299,7 +303,7 @@ export function JobTableEnhancedV3() {
     }
   }
 
-  const columns = React.useMemo(() => createJobsColumnsV3({
+  const columns = React.useMemo(() => createJobsColumnsV4({
     onTogglePriority: handleTogglePriority,
     onRemoveFromMorningBrew: handleRemoveFromMorningBrew,
     onCopyJob: handleCopyJobText,
