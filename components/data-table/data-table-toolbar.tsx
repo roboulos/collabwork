@@ -6,20 +6,26 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DataTableViewOptions } from "./data-table-view-options"
 import { DataTableFacetedFilter } from "./data-table-faceted-filter"
-import { Plus } from 'lucide-react'
+import { Plus, Coffee } from 'lucide-react'
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
 
 interface Props<TData> {
   table: Table<TData>
   onAddJobs?: () => void
   filterColumn?: string
   brandOptions?: Array<{ value: string; label: string }>
+  showMorningBrewOnly?: boolean
+  onToggleMorningBrewView?: (value: boolean) => void
 }
 
 export function DataTableToolbar<TData>({ 
   table, 
   onAddJobs,
   filterColumn = "title",
-  brandOptions = []
+  brandOptions = [],
+  showMorningBrewOnly = false,
+  onToggleMorningBrewView
 }: Props<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0
 
@@ -53,7 +59,20 @@ export function DataTableToolbar<TData>({
             </Button>
           )}
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-4">
+          {onToggleMorningBrewView && (
+            <div className="flex items-center space-x-2">
+              <Coffee className="h-4 w-4 text-muted-foreground" />
+              <Label htmlFor="mb-view" className="text-sm font-medium">
+                Morning Brew View
+              </Label>
+              <Switch
+                id="mb-view"
+                checked={showMorningBrewOnly}
+                onCheckedChange={onToggleMorningBrewView}
+              />
+            </div>
+          )}
           {onAddJobs && (
             <Button 
               onClick={onAddJobs}

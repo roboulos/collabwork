@@ -41,6 +41,7 @@ export function JobTableEnhancedV3() {
   const [communities, setCommunities] = useState<Community[]>([])
   const [loading, setLoading] = useState(true)
   const [rowSelection, setRowSelection] = useState({})
+  const [showMorningBrewOnly, setShowMorningBrewOnly] = useState(false)
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
     location: false,
     employment_type: false,
@@ -51,6 +52,7 @@ export function JobTableEnhancedV3() {
     cpa: true,
     feed_source: true,
     mb_status: true,
+    clicks: true,
     payment_source: false,
     post_source: false,
     morningbrew_brands: true,
@@ -315,8 +317,13 @@ export function JobTableEnhancedV3() {
     onCancelEdit: handleCancelEdit
   }), [editingCell, editValue])
 
+  // Filter jobs based on Morning Brew view toggle
+  const filteredJobs = showMorningBrewOnly 
+    ? jobs.filter(job => job.is_morningbrew === true)
+    : jobs
+
   const table = useReactTable({
-    data: jobs,
+    data: filteredJobs,
     columns,
     initialState: {
       pagination: {
@@ -374,10 +381,19 @@ export function JobTableEnhancedV3() {
       <Card className="shadow-lg backdrop-blur-sm bg-white/90 dark:bg-gray-900/90 border border-gray-200 dark:border-gray-800">
         <div className="p-4">
           <div className="mb-4">
-            <h2 className="text-2xl font-bold tracking-tight">Job Postings</h2>
-            <p className="text-muted-foreground">
-              Manage and curate job listings for MorningBrew newsletters
-            </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold tracking-tight">
+                  {showMorningBrewOnly ? 'Morning Brew Curated Jobs' : 'All Job Postings'}
+                </h2>
+                <p className="text-muted-foreground">
+                  {showMorningBrewOnly 
+                    ? `Viewing ${filteredJobs.length} jobs curated for Morning Brew`
+                    : `Manage and curate job listings from ${jobs.length} available positions`
+                  }
+                </p>
+              </div>
+            </div>
           </div>
           
           <div className="space-y-4">
@@ -389,6 +405,8 @@ export function JobTableEnhancedV3() {
                 value: c.id.toString(), 
                 label: c.community_name 
               }))}
+              showMorningBrewOnly={showMorningBrewOnly}
+              onToggleMorningBrewView={setShowMorningBrewOnly}
             />
             
             <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-sm overflow-hidden">

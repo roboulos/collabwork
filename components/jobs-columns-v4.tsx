@@ -625,6 +625,26 @@ export const createJobsColumnsV4 = ({
     enableHiding: true,
   },
   {
+    id: "clicks",
+    accessorFn: row => row.morningbrew?.click_count || 0,
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Clicks" />
+    ),
+    cell: ({ row }) => {
+      const job = row.original
+      const clicks = job.morningbrew?.click_count || 0
+      return (
+        <div className="text-center">
+          <Badge variant={clicks > 0 ? "default" : "secondary"} className="min-w-[2.5rem]">
+            {clicks}
+          </Badge>
+        </div>
+      )
+    },
+    enableHiding: true,
+    size: 80,
+  },
+  {
     id: "morningbrew_brands",
     accessorFn: row => {
       if (!row.is_morningbrew || !row.morningbrew?.community_ids) return []
