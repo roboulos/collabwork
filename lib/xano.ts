@@ -152,10 +152,11 @@ class XanoService {
     return response.data;
   }
 
-  async listMorningBrewJobs(page: number = 1, status: string = '') {
+  async listMorningBrewJobs(page: number = 1, status: string = '', per_page: number = 100) {
     const response = await this.axiosInstance.post('/api:microapp/morningbrew/list-all-brands', {
       page: page,
-      status: status
+      status: status,
+      per_page: per_page
     });
     return response.data;
   }

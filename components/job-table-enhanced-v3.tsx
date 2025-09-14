@@ -99,7 +99,7 @@ export function JobTableEnhancedV3() {
       setLoading(true)
       if (showMorningBrewOnly) {
         // Load Morning Brew curated jobs
-        const response = await xanoService.listMorningBrewJobs(1, '')
+        const response = await xanoService.listMorningBrewJobs(1, '', 100)
         // Transform the data to match our JobPosting interface
         const transformedJobs = (response.items || []).map((mbJob: {
           id: number;
@@ -117,27 +117,38 @@ export function JobTableEnhancedV3() {
           formatted_title?: string;
           is_source_deleted?: boolean;
           job_posting?: JobPosting;
-        }) => ({
-          id: mbJob.job_posting_id,
-          company: mbJob.company || mbJob.job_posting?.company || '',
-          title: mbJob.title || mbJob.job_posting?.title || '',
-          ai_title: mbJob.title || mbJob.job_posting?.ai_title || '',
-          location: mbJob.location || mbJob.job_posting?.location || [],
-          is_morningbrew: true,
-          morningbrew: {
-            id: mbJob.id,
-            status: mbJob.status,
-            click_count: mbJob.click_count || 0,
-            community_ids: (mbJob.community_ids || []).map((id: number) => ({
-              id: id,
-              community_name: communities.find(c => c.id === id)?.community_name || `Brand ${id}`
-            })),
-            formatted_title: mbJob.formatted_title,
-            is_source_deleted: mbJob.is_source_deleted
-          },
-          // Include other fields if they exist
-          ...mbJob.job_posting
-        }))
+        }) => {
+          // Use job_posting data as base, then override with MB-specific data
+          const baseJob = mbJob.job_posting || {} as JobPosting;
+          
+          return {
+            // Spread all job_posting fields first
+            ...baseJob,
+            // Then override with MB-specific fields
+            id: mbJob.job_posting_id,
+            company: mbJob.company || baseJob.company || '',
+            title: mbJob.title || baseJob.title || '',
+            ai_title: mbJob.formatted_title || baseJob.ai_title || baseJob.title || '',
+            location: mbJob.location || baseJob.location || [],
+            is_morningbrew: true,
+            // Ensure we have feed source data
+            single_partner: baseJob.single_partner || { partner_name: '', payment_type: '' },
+            cpc: baseJob.cpc || 0,
+            cpa: baseJob.cpa || 0,
+            posted_at: baseJob.posted_at || Date.now(),
+            morningbrew: {
+              id: mbJob.id,
+              status: mbJob.status || 'suggested',
+              click_count: mbJob.click_count || 0,
+              community_ids: (mbJob.community_ids || []).map((id: number) => ({
+                id: id,
+                community_name: communities.find(c => c.id === id)?.community_name || `Brand ${id}`
+              })),
+              formatted_title: mbJob.formatted_title,
+              is_source_deleted: mbJob.is_source_deleted || false
+            }
+          }
+        })
         setJobs(transformedJobs)
       } else {
         // Load all jobs from feeds
