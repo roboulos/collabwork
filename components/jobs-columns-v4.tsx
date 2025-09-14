@@ -440,7 +440,7 @@ export const createJobsColumnsV4 = ({
     id: "feed_source",
     accessorFn: row => {
       const partnerName = row.single_partner?.partner_name
-      const paymentType = row.cpa > 0 ? 'CPA' : 'CPC'
+      const paymentType = (row.cpa || 0) > 0 ? 'CPA' : 'CPC'
       return `${partnerName || 'Unknown'} ${paymentType}`
     },
     header: ({ column }) => (
@@ -449,7 +449,7 @@ export const createJobsColumnsV4 = ({
     cell: ({ row }) => {
       const job = row.original
       const partnerName = job.single_partner?.partner_name
-      const paymentType = job.cpa > 0 ? 'CPA' : 'CPC'
+      const paymentType = (job.cpa || 0) > 0 ? 'CPA' : 'CPC'
       
       return <FeedSourceBadge partnerName={partnerName} paymentType={paymentType} />
     },
@@ -491,7 +491,7 @@ export const createJobsColumnsV4 = ({
     cell: ({ row }) => {
       const job = row.original
       const cpc = job.cpc || 0
-      const paymentType = job.cpa > 0 ? 'CPA' : 'CPC'
+      const paymentType = (job.cpa || 0) > 0 ? 'CPA' : 'CPC'
       const isPaidOnCPC = paymentType === 'CPC'
       
       return (
@@ -521,7 +521,7 @@ export const createJobsColumnsV4 = ({
     cell: ({ row }) => {
       const job = row.original
       const cpa = job.cpa || 0
-      const paymentType = job.cpa > 0 ? 'CPA' : 'CPC'
+      const paymentType = (job.cpa || 0) > 0 ? 'CPA' : 'CPC'
       const isPaidOnCPA = paymentType === 'CPA'
       
       return (

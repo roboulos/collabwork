@@ -49,6 +49,10 @@ export interface JobPosting {
   priority_reason?: string;
   communities?: string[];
   is_morningbrew?: boolean;
+  single_partner?: {
+    partner_name?: string;
+    payment_type?: string;
+  };
   morningbrew?: {
     id?: number;
     community_ids: Array<{
@@ -65,6 +69,8 @@ export interface JobPosting {
     cached_company?: string;
     cached_location?: string;
     cached_application_url?: string;
+    is_source_deleted?: boolean;
+    formatted_title?: string;
   };
 }
 

@@ -267,7 +267,7 @@ export function JobTableEnhancedV3() {
                   community_name: c.community_name
                 })),
                 is_priority: job.morningbrew?.is_priority || false,
-                status: 'draft',
+                status: 'suggested',
                 click_count: 0
               }
             }
