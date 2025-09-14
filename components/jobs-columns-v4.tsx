@@ -496,16 +496,12 @@ export const createJobsColumnsV4 = ({
       
       return (
         <div className="text-center">
-          {cpc > 0 ? (
-            <span className={cn(
-              "font-semibold text-sm",
-              isPaidOnCPC ? "text-blue-700 text-base" : "text-gray-400 text-xs"
-            )}>
-              ${cpc.toFixed(2)}
-            </span>
-          ) : (
-            <span className="text-gray-300">—</span>
-          )}
+          <span className={cn(
+            "font-semibold text-sm",
+            cpc > 0 && isPaidOnCPC ? "text-blue-700 text-base" : "text-gray-400 text-xs"
+          )}>
+            ${cpc.toFixed(2)}
+          </span>
         </div>
       )
     },
@@ -526,16 +522,12 @@ export const createJobsColumnsV4 = ({
       
       return (
         <div className="text-center">
-          {cpa > 0 ? (
-            <span className={cn(
-              "font-semibold text-sm",
-              isPaidOnCPA ? "text-green-700 text-base" : "text-gray-400 text-xs"
-            )}>
-              ${cpa.toFixed(2)}
-            </span>
-          ) : (
-            <span className="text-gray-300">—</span>
-          )}
+          <span className={cn(
+            "font-semibold text-sm",
+            cpa > 0 && isPaidOnCPA ? "text-green-700 text-base" : "text-gray-400 text-xs"
+          )}>
+            ${cpa.toFixed(2)}
+          </span>
         </div>
       )
     },
