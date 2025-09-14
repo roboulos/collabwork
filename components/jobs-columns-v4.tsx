@@ -30,15 +30,29 @@ interface JobsColumnsProps {
 
 // Helper components for feed source and MB status badges
 const FeedSourceBadge = ({ partnerName, paymentType }: { partnerName?: string, paymentType?: string }) => {
-  if (!partnerName) return <span className="text-xs text-gray-400">Unknown Feed</span>;
+  if (!partnerName) return (
+    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800">
+      <span className="text-xs text-gray-500">No Feed Source</span>
+    </div>
+  );
   
   // Display as "Appcast CPA" or "Appcast CPC" as per PRD
   return (
-    <div className="font-medium text-sm">
-      {partnerName} <span className={cn(
-        "font-semibold",
-        paymentType === 'CPA' ? 'text-green-700' : 'text-blue-700'
-      )}>{paymentType}</span>
+    <div className={cn(
+      "inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium",
+      paymentType === 'CPA' 
+        ? 'bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800' 
+        : 'bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800'
+    )}>
+      <span className="text-gray-700 dark:text-gray-300">{partnerName}</span>
+      <span className={cn(
+        "font-bold",
+        paymentType === 'CPA' 
+          ? 'text-green-700 dark:text-green-400' 
+          : 'text-blue-700 dark:text-blue-400'
+      )}>
+        {paymentType || ''}
+      </span>
     </div>
   );
 };
@@ -163,30 +177,32 @@ export const createJobsColumnsV4 = ({
       return (
         <div 
           className={cn(
-            "flex flex-col space-y-1 group cursor-text",
+            "flex flex-col space-y-0.5 group cursor-text",
             isSourceDeleted && "opacity-60"
           )}
           onDoubleClick={() => onStartEdit(job.id, 'company', company)}
         >
           {isSourceDeleted && (
-            <div className="flex items-center gap-1 text-xs">
+            <div className="flex items-center gap-1 text-xs mb-0.5">
               <AlertTriangle className="h-3 w-3 text-red-500" />
               <span className="text-red-600 font-medium">Source Deleted</span>
             </div>
           )}
-          <span className="font-medium group-hover:underline group-hover:decoration-dotted">
-            {company}
+          <span className="font-semibold text-sm leading-tight group-hover:underline group-hover:decoration-dotted">
+            {company || 'Unknown Company'}
           </span>
           {job.morningbrew?.cached_company && job.morningbrew.cached_company !== company && (
-            <span className="text-xs text-muted-foreground">
-              Original: {job.company}
+            <span className="text-xs text-muted-foreground/70 italic">
+              was: {job.company}
             </span>
           )}
-          <span className="text-xs text-muted-foreground">
-            {job.sector && <span>{job.sector}</span>}
-            {job.sector && job.industry && <span className="mx-1 opacity-40">•</span>}
-            {job.industry && <span>{job.industry}</span>}
-          </span>
+          {(job.sector || job.industry) && (
+            <span className="text-xs text-muted-foreground/80 leading-tight">
+              {job.sector && <span>{job.sector}</span>}
+              {job.sector && job.industry && <span className="mx-1 opacity-40">•</span>}
+              {job.industry && <span>{job.industry}</span>}
+            </span>
+          )}
         </div>
       )
     },
@@ -234,7 +250,7 @@ export const createJobsColumnsV4 = ({
       }
       
       return (
-        <div className={cn("space-y-1", isSourceDeleted && "opacity-60")}>
+        <div className={cn("space-y-0.5", isSourceDeleted && "opacity-60")}>
           <div 
             className="group cursor-text"
             onDoubleClick={() => onStartEdit(job.id, 'title', title)}
@@ -244,29 +260,29 @@ export const createJobsColumnsV4 = ({
                 href={job.application_url} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline"
+                className="flex items-center gap-1.5 text-blue-600 hover:text-blue-800 hover:underline text-sm font-medium"
                 onClick={(e) => e.stopPropagation()}
               >
-                <span className="group-hover:underline group-hover:decoration-dotted">
-                  {title}
+                <span className="leading-tight">
+                  {title || 'Untitled Position'}
                 </span>
-                <ExternalLink className="h-3 w-3" />
+                <ExternalLink className="h-3.5 w-3.5 flex-shrink-0" />
               </a>
             ) : (
               <span className={cn(
-                "font-medium group-hover:underline group-hover:decoration-dotted",
+                "font-medium text-sm leading-tight block group-hover:underline group-hover:decoration-dotted",
                 isSourceDeleted && "line-through decoration-red-400"
               )}>
-                {title}
+                {title || 'Untitled Position'}
               </span>
             )}
             {job.morningbrew?.cached_job_title && job.morningbrew.cached_job_title !== job.ai_title && (
-              <span className="text-xs text-muted-foreground block">
-                Original: {job.ai_title || job.title}
+              <span className="text-xs text-muted-foreground/70 italic">
+                was: {job.ai_title || job.title}
               </span>
             )}
           </div>
-          <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground mt-1">
+          <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground/80">
             {typeof job.ai_confidence_score === 'number' && (
               <span className="tabular-nums">
                 AI {job.ai_confidence_score}%

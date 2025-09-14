@@ -91,10 +91,13 @@ export function JobTableEnhancedV3() {
       setCommunities(Array.isArray(response) ? response : [])
     } catch (error) {
       console.error('Error loading communities:', error)
+      setToast({ message: 'Failed to load communities', type: 'error' })
+      // Set some default communities to prevent empty state
+      setCommunities([])
     }
   }
 
-  const loadJobs = async () => {
+  const loadJobs = async (retryCount = 0) => {
     try {
       setLoading(true)
       if (showMorningBrewOnly) {
@@ -155,8 +158,19 @@ export function JobTableEnhancedV3() {
         const response = await xanoService.listJobs(0)
         setJobs(response.items || [])
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error loading jobs:', error)
+      
+      // Retry once on 500 errors
+      const axiosError = error as { response?: { status?: number } }
+      if (axiosError?.response?.status === 500 && retryCount < 1) {
+        console.log('Retrying API call...')
+        setTimeout(() => loadJobs(retryCount + 1), 1000)
+        return
+      }
+      
+      setToast({ message: 'Failed to load jobs. Please refresh the page.', type: 'error' })
+      setJobs([])
     } finally {
       setLoading(false)
     }
