@@ -71,6 +71,12 @@ export interface JobPosting {
     cached_application_url?: string;
     is_source_deleted?: boolean;
     formatted_title?: string;
+    custom_company_name?: string;
+    custom_location?: string;
+    custom_employment_type?: string;
+    custom_is_remote?: string;
+    cached_employment_type?: string;
+    cached_is_remote?: boolean;
   };
 }
 
@@ -88,6 +94,8 @@ export interface UpdateJobPayload {
   job_posting_id: string;
   custom_company_name?: string;
   custom_location?: string;
+  custom_employment_type?: string;
+  custom_is_remote?: string;
   notes?: string;
 }
 
@@ -157,6 +165,42 @@ class XanoService {
       page: page,
       status: status,
       per_page: per_page
+    });
+    return response.data;
+  }
+
+  // Authentication methods
+  async loginAdmin(email: string, password: string) {
+    const response = await this.axiosInstance.post('/api:microapp/admin/auth/login', {
+      email,
+      password
+    });
+    if (response.data.authToken) {
+      // Store token in interceptor
+      this.axiosInstance.defaults.headers.Authorization = `Bearer ${response.data.authToken}`;
+    }
+    return response.data;
+  }
+
+  async validateAuth() {
+    const response = await this.axiosInstance.get('/api:microapp/admin/auth/me');
+    return response.data;
+  }
+
+  // Shared tracking link method
+  async generateTrackingLink(jobId: number, communityId: number) {
+    const response = await this.axiosInstance.post('/api:microapp/shared/generate-tracking-link', {
+      job_posting_id: jobId,
+      community_id: communityId
+    });
+    return response.data;
+  }
+
+  // Brew-specific methods
+  async updateJobField(jobId: number, field: string, value: string | boolean | number) {
+    const response = await this.axiosInstance.post('/api:microapp/brew/update-details', {
+      job_id: jobId,
+      [field]: value
     });
     return response.data;
   }

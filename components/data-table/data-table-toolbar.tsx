@@ -15,6 +15,7 @@ interface Props<TData> {
   onAddJobs?: () => void
   filterColumn?: string
   brandOptions?: Array<{ value: string; label: string }>
+  feedOptions?: Array<{ value: string; label: string }>
   showMorningBrewOnly?: boolean
   onToggleMorningBrewView?: (value: boolean) => void
 }
@@ -24,6 +25,7 @@ export function DataTableToolbar<TData>({
   onAddJobs,
   filterColumn = "title",
   brandOptions = [],
+  feedOptions = [],
   showMorningBrewOnly = false,
   onToggleMorningBrewView
 }: Props<TData>) {
@@ -46,6 +48,13 @@ export function DataTableToolbar<TData>({
               column={table.getColumn("morningbrew_brands")}
               title="MorningBrew Brands"
               options={brandOptions}
+            />
+          )}
+          {table.getColumn("feed_source") && feedOptions.length > 0 && (
+            <DataTableFacetedFilter
+              column={table.getColumn("feed_source")}
+              title="Feed Source"
+              options={feedOptions}
             />
           )}
           {isFiltered && (

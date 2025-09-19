@@ -27,7 +27,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './ui/dialog'
 import { Button } from './ui/button'
 import { Checkbox } from './ui/checkbox'
-import { xanoService, JobPosting, Community } from '@/lib/xano'
+import { xanoService, JobPosting, Community, UpdateJobPayload } from '@/lib/xano'
 import { Loader2 } from 'lucide-react'
 import { TableSkeleton } from './ui/skeleton'
 import { createJobsColumnsV4 } from './jobs-columns-v4'
@@ -249,13 +249,29 @@ export function JobTableEnhancedV3() {
               ...j,
               morningbrew: j.morningbrew ? {
                 ...j.morningbrew,
-                cached_job_title: editValue
+                formatted_title: editValue
               } : undefined
             }
           } else if (editingCell.field === 'company') {
             return { ...j, custom_company_name: editValue }
           } else if (editingCell.field === 'location') {
             return { ...j, custom_location: editValue }
+          } else if (editingCell.field === 'employment_type') {
+            return {
+              ...j,
+              morningbrew: j.morningbrew ? {
+                ...j.morningbrew,
+                custom_employment_type: editValue
+              } : undefined
+            }
+          } else if (editingCell.field === 'is_remote') {
+            return {
+              ...j,
+              morningbrew: j.morningbrew ? {
+                ...j.morningbrew,
+                custom_is_remote: editValue
+              } : undefined
+            }
           }
         }
         return j
@@ -263,20 +279,39 @@ export function JobTableEnhancedV3() {
     )
 
     try {
-      const updateData: Record<string, string> = {}
-      if (editingCell.field === 'company') {
-        updateData.custom_company_name = editValue
-      } else if (editingCell.field === 'location') {
-        updateData.custom_location = editValue
-      } else if (editingCell.field === 'title') {
-        // You'll need to add an endpoint for updating cached_job_title
-        updateData.cached_job_title = editValue
-      }
+      // For title field, use the existing brew/update-details endpoint
+      if (editingCell.field === 'title') {
+        await xanoService.updateJobField(
+          editingCell.jobId,
+          'formatted_title',
+          editValue
+        )
+      } else {
+        // Check if job has morningbrew record for employment_type and is_remote fields
+        if ((editingCell.field === 'employment_type' || editingCell.field === 'is_remote') && !job.is_morningbrew) {
+          setToast({ message: 'Please add this job to Morning Brew first before editing this field', type: 'error' })
+          setEditingCell(null)
+          setEditValue('')
+          return
+        }
 
-      await xanoService.updateJob({
-        job_posting_id: editingCell.jobId.toString(),
-        ...updateData
-      })
+        // For all other fields, use ashley/update-job endpoint
+        const updatePayload: UpdateJobPayload = {
+          job_posting_id: editingCell.jobId.toString()
+        }
+
+        if (editingCell.field === 'company') {
+          updatePayload.custom_company_name = editValue
+        } else if (editingCell.field === 'location') {
+          updatePayload.custom_location = editValue
+        } else if (editingCell.field === 'employment_type') {
+          updatePayload.custom_employment_type = editValue
+        } else if (editingCell.field === 'is_remote') {
+          updatePayload.custom_is_remote = editValue
+        }
+
+        await xanoService.updateJob(updatePayload)
+      }
       
       setToast({ message: 'Job updated successfully', type: 'success' })
     } catch (error) {
@@ -295,7 +330,7 @@ export function JobTableEnhancedV3() {
   }
 
   const handleCopyJobText = async (job: JobPosting) => {
-    const title = job.morningbrew?.cached_job_title || job.ai_title || job.title
+    const title = job.morningbrew?.formatted_title || job.ai_title || job.title
     const company = job.custom_company_name || job.company
     const location = job.custom_location || 
       (job.location && job.location[0] ? 
@@ -474,6 +509,20 @@ export function JobTableEnhancedV3() {
                 value: c.id.toString(), 
                 label: c.community_name 
               }))}
+              feedOptions={(() => {
+                const feedSources = new Set<string>()
+                jobs.forEach(job => {
+                  const partnerName = job.single_partner?.partner_name
+                  const paymentType = (job.cpa || 0) > 0 ? 'CPA' : 'CPC'
+                  if (partnerName) {
+                    feedSources.add(`${partnerName} ${paymentType}`)
+                  }
+                })
+                return Array.from(feedSources).map(feed => ({
+                  value: feed,
+                  label: feed
+                })).sort((a, b) => a.label.localeCompare(b.label))
+              })()}
               showMorningBrewOnly={showMorningBrewOnly}
               onToggleMorningBrewView={async (value) => {
                 setIsToggling(true)

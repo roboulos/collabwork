@@ -219,7 +219,7 @@ export const createJobsColumnsV4 = ({
     cell: ({ row }) => {
       const job = row.original
       const isEditing = editingCell?.jobId === job.id && editingCell?.field === 'title'
-      const title = job.morningbrew?.cached_job_title || job.ai_title || job.title
+      const title = job.morningbrew?.formatted_title || job.ai_title || job.title
       const isSourceDeleted = job.morningbrew?.is_source_deleted
       
       if (isEditing) {
@@ -276,7 +276,7 @@ export const createJobsColumnsV4 = ({
                 {title || 'Untitled Position'}
               </span>
             )}
-            {job.morningbrew?.cached_job_title && job.morningbrew.cached_job_title !== job.ai_title && (
+            {job.morningbrew?.formatted_title && job.morningbrew.formatted_title !== job.ai_title && (
               <span className="text-xs text-muted-foreground/70 italic">
                 was: {job.ai_title || job.title}
               </span>
@@ -408,15 +408,58 @@ export const createJobsColumnsV4 = ({
       <DataTableColumnHeader column={column} title="Type" />
     ),
     cell: ({ row }) => {
-      const type = row.getValue("employment_type") as string
+      const job = row.original
+      const isEditing = editingCell?.jobId === job.id && editingCell?.field === 'employment_type'
+      const type = job.morningbrew?.custom_employment_type || row.getValue("employment_type") as string
       const displayType = type ? type.replace(/_/g, '-').toLowerCase()
         .split('-')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join('-') : 'Not specified'
+      
+      if (isEditing) {
+        return (
+          <div
+            className="flex items-center gap-1 bg-background border border-input rounded-md px-2 py-0.5 -mx-1 shadow-sm"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Input
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') onSaveEdit()
+                if (e.key === 'Escape') onCancelEdit()
+              }}
+              className="h-7 text-sm border-0 bg-transparent focus:outline-none"
+              autoFocus
+              placeholder="e.g., full-time, part-time, contract"
+              title="Press Enter to save, Esc to cancel"
+            />
+            <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={onSaveEdit} aria-label="Save">
+              <Check className="h-4 w-4 text-green-600" />
+            </Button>
+            <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={onCancelEdit} aria-label="Cancel">
+              <XIcon className="h-4 w-4 text-red-600" />
+            </Button>
+          </div>
+        )
+      }
+      
       return (
-        <Badge variant="outline" className="font-normal">
-          {displayType}
-        </Badge>
+        <div 
+          className={cn(
+            "group",
+            job.is_morningbrew ? "cursor-text" : "cursor-not-allowed opacity-70"
+          )}
+          onDoubleClick={() => job.is_morningbrew && onStartEdit(job.id, 'employment_type', type || '')}
+          title={!job.is_morningbrew ? "Add to Morning Brew to edit this field" : "Double-click to edit"}
+        >
+          <Badge variant="outline" className={cn(
+            "font-normal",
+            job.is_morningbrew && "group-hover:ring-1 group-hover:ring-gray-300"
+          )}>
+            {displayType}
+          </Badge>
+        </div>
       )
     },
     filterFn: (row, id, value) => {
@@ -433,15 +476,69 @@ export const createJobsColumnsV4 = ({
       <DataTableColumnHeader column={column} title="Remote" />
     ),
     cell: ({ row }) => {
-      const isRemote = row.getValue("is_remote") as boolean
-      return isRemote ? (
-        <Badge variant="outline" className="border-green-300 text-green-600">
-          Remote OK
-        </Badge>
-      ) : (
-        <Badge variant="outline" className="border-gray-200 text-gray-400">
-          On-site
-        </Badge>
+      const job = row.original
+      const isEditing = editingCell?.jobId === job.id && editingCell?.field === 'is_remote'
+      const customRemote = job.morningbrew?.custom_is_remote
+      let displayStatus: string
+      
+      if (customRemote) {
+        displayStatus = customRemote
+      } else {
+        const isRemote = row.getValue("is_remote") as boolean
+        displayStatus = isRemote ? "Remote" : "On-site"
+      }
+      
+      if (isEditing) {
+        return (
+          <div
+            className="flex items-center gap-1 bg-background border border-input rounded-md px-2 py-0.5 -mx-1 shadow-sm"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <select
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') onSaveEdit()
+                if (e.key === 'Escape') onCancelEdit()
+              }}
+              className="h-7 text-sm border-0 bg-transparent focus:outline-none cursor-pointer"
+              autoFocus
+            >
+              <option value="Remote">Remote</option>
+              <option value="On-site">On-site</option>
+              <option value="Hybrid">Hybrid</option>
+            </select>
+            <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={onSaveEdit} aria-label="Save">
+              <Check className="h-4 w-4 text-green-600" />
+            </Button>
+            <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={onCancelEdit} aria-label="Cancel">
+              <XIcon className="h-4 w-4 text-red-600" />
+            </Button>
+          </div>
+        )
+      }
+      
+      return (
+        <div 
+          className={cn(
+            "group",
+            job.is_morningbrew ? "cursor-text" : "cursor-not-allowed opacity-70"
+          )}
+          onDoubleClick={() => job.is_morningbrew && onStartEdit(job.id, 'is_remote', displayStatus)}
+          title={!job.is_morningbrew ? "Add to Morning Brew to edit this field" : "Double-click to edit"}
+        >
+          <Badge 
+            variant="outline" 
+            className={cn(
+              job.is_morningbrew && "group-hover:ring-1 group-hover:ring-gray-300",
+              displayStatus === "Remote" ? "border-green-300 text-green-600" : 
+              displayStatus === "Hybrid" ? "border-blue-300 text-blue-600" :
+              "border-gray-200 text-gray-400"
+            )}
+          >
+            {displayStatus}
+          </Badge>
+        </div>
       )
     },
     filterFn: (row, id, value) => {
@@ -468,6 +565,9 @@ export const createJobsColumnsV4 = ({
       const paymentType = (job.cpa || 0) > 0 ? 'CPA' : 'CPC'
       
       return <FeedSourceBadge partnerName={partnerName} paymentType={paymentType} />
+    },
+    filterFn: (row, id, value) => {
+      return value.includes(row.getValue(id))
     },
     enableHiding: true,
     size: 140,
