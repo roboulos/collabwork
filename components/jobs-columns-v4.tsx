@@ -790,22 +790,28 @@ export const createJobsColumnsV4 = ({
             </Badge>
           )}
           {visible.map(c => (
-            <div key={c.id} className="group/badge relative inline-flex">
-              <Badge variant="secondary" className="text-xs pr-6">
+            <div key={c.id} className="group/badge relative inline-flex items-center">
+              <Badge variant="secondary" className="text-xs pr-7 py-1 relative">
                 {c.community_name}
               </Badge>
-              {onRemoveFromCommunity && (
+              {onRemoveFromCommunity ? (
                 <button
+                  type="button"
                   onClick={(e) => {
                     e.stopPropagation()
+                    e.preventDefault()
+                    console.log('Button clicked for job', job.id, 'community', c.id)
+                    console.log('onRemoveFromCommunity exists?', !!onRemoveFromCommunity)
+                    console.log('Calling onRemoveFromCommunity NOW')
                     onRemoveFromCommunity(job.id, c.id)
+                    console.log('Called onRemoveFromCommunity - did it work?')
                   }}
-                  className="absolute right-0.5 top-1/2 -translate-y-1/2 opacity-0 group-hover/badge:opacity-100 transition-opacity p-0.5 hover:bg-destructive/20 rounded"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 hover:bg-destructive/10 rounded p-0.5 z-20 border border-gray-200 dark:border-gray-700"
                   aria-label={`Remove from ${c.community_name}`}
                 >
                   <X className="h-3 w-3 text-destructive" />
                 </button>
-              )}
+              ) : null}
             </div>
           ))}
           {overflow > 0 && (

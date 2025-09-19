@@ -206,11 +206,18 @@ class XanoService {
   }
 
   async removeJobFromCommunity(jobPostingId: number, communityId: number) {
-    const response = await this.axiosInstance.post('/api:microapp/ashley/remove-job-from-community', {
-      job_posting_id: jobPostingId,
-      community_id: communityId
-    });
-    return response.data;
+    console.log('XanoService: removeJobFromCommunity called with', { jobPostingId, communityId });
+    try {
+      const response = await this.axiosInstance.post('/api:microapp/ashley/remove-job-from-community', {
+        job_posting_id: jobPostingId,
+        community_id: communityId
+      });
+      console.log('XanoService: API response', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('XanoService: API error', error);
+      throw error;
+    }
   }
 }
 
