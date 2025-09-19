@@ -204,6 +204,14 @@ class XanoService {
     });
     return response.data;
   }
+
+  async removeJobFromCommunity(jobPostingId: number, communityId: number) {
+    const response = await this.axiosInstance.post('/api:microapp/ashley/remove-job-from-community', {
+      job_posting_id: jobPostingId,
+      community_id: communityId
+    });
+    return response.data;
+  }
 }
 
 export const xanoService = new XanoService();

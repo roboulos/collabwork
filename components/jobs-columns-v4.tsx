@@ -19,6 +19,7 @@ import {
 interface JobsColumnsProps {
   onTogglePriority: (jobId: number, currentPriority: boolean) => void
   onRemoveFromMorningBrew: (jobId: number) => void
+  onRemoveFromCommunity?: (jobId: number, communityId: number) => void
   onCopyJob: (job: JobPosting) => void
   onStartEdit: (jobId: number, field: string, currentValue: string) => void
   editingCell: { jobId: number; field: string } | null
@@ -101,6 +102,7 @@ const MBStatusBadge = ({ status }: { status?: string }) => {
 export const createJobsColumnsV4 = ({
   onTogglePriority,
   onRemoveFromMorningBrew,
+  onRemoveFromCommunity,
   onCopyJob,
   onStartEdit,
   editingCell,
@@ -788,9 +790,23 @@ export const createJobsColumnsV4 = ({
             </Badge>
           )}
           {visible.map(c => (
-            <Badge key={c.id} variant="secondary" className="text-xs">
-              {c.community_name}
-            </Badge>
+            <div key={c.id} className="group/badge relative inline-flex">
+              <Badge variant="secondary" className="text-xs pr-6">
+                {c.community_name}
+              </Badge>
+              {onRemoveFromCommunity && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onRemoveFromCommunity(job.id, c.id)
+                  }}
+                  className="absolute right-0.5 top-1/2 -translate-y-1/2 opacity-0 group-hover/badge:opacity-100 transition-opacity p-0.5 hover:bg-destructive/20 rounded"
+                  aria-label={`Remove from ${c.community_name}`}
+                >
+                  <X className="h-3 w-3 text-destructive" />
+                </button>
+              )}
+            </div>
           ))}
           {overflow > 0 && (
             <TooltipProvider>

@@ -229,6 +229,43 @@ export function JobTableEnhancedV3() {
     }
   }
 
+  const handleRemoveFromCommunity = async (jobId: number, communityId: number) => {
+    const job = jobs.find(j => j.id === jobId)
+    if (!job || !job.morningbrew) return
+
+    const communityName = job.morningbrew.community_ids?.find(c => c.id === communityId)?.community_name || 'community'
+
+    // Optimistic update
+    setJobs(prevJobs => 
+      prevJobs.map(j => {
+        if (j.id === jobId && j.morningbrew) {
+          const newCommunityIds = j.morningbrew.community_ids?.filter(c => c.id !== communityId) || []
+          // If no communities left, remove from morning brew entirely
+          if (newCommunityIds.length === 0) {
+            return { ...j, is_morningbrew: false, morningbrew: undefined }
+          }
+          return {
+            ...j,
+            morningbrew: {
+              ...j.morningbrew,
+              community_ids: newCommunityIds
+            }
+          }
+        }
+        return j
+      })
+    )
+
+    try {
+      await xanoService.removeJobFromCommunity(jobId, communityId)
+      setToast({ message: `Job removed from ${communityName}`, type: 'success' })
+    } catch (error) {
+      console.error('Error removing job from community:', error)
+      setToast({ message: 'Failed to remove job from community', type: 'error' })
+      await loadJobs()
+    }
+  }
+
   const handleStartEdit = (jobId: number, field: string, currentValue: string) => {
     setEditingCell({ jobId, field })
     setEditValue(currentValue || '')
@@ -417,6 +454,7 @@ export function JobTableEnhancedV3() {
   const columns = React.useMemo(() => createJobsColumnsV4({
     onTogglePriority: handleTogglePriority,
     onRemoveFromMorningBrew: handleRemoveFromMorningBrew,
+    onRemoveFromCommunity: handleRemoveFromCommunity,
     onCopyJob: handleCopyJobText,
     onStartEdit: handleStartEdit,
     editingCell,
