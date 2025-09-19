@@ -120,10 +120,26 @@ export function JobTableEnhancedV3() {
           formatted_title?: string;
           is_source_deleted?: boolean;
           job_posting?: JobPosting;
+          cached_feed_source?: string;
+          cached_payment_type?: string;
+          cached_posted_at?: number;
+          cached_cpc?: number;
+          cached_cpa?: number;
+          created_at?: number;
         }) => {
           // Use job_posting data as base, then override with MB-specific data
           const baseJob = mbJob.job_posting || {} as JobPosting;
           
+          // Preserve feed source data when source is deleted
+          const feedSource = mbJob.is_source_deleted && mbJob.cached_feed_source
+            ? { partner_name: mbJob.cached_feed_source, payment_type: mbJob.cached_payment_type || '' }
+            : baseJob.single_partner || { partner_name: '', payment_type: '' };
+          
+          // Preserve posted date when source is deleted  
+          const postedAt = mbJob.is_source_deleted && mbJob.cached_posted_at
+            ? mbJob.cached_posted_at
+            : baseJob.posted_at || mbJob.created_at || Date.now();
+
           return {
             // Spread all job_posting fields first
             ...baseJob,
@@ -134,11 +150,11 @@ export function JobTableEnhancedV3() {
             ai_title: mbJob.formatted_title || baseJob.ai_title || baseJob.title || '',
             location: mbJob.location || baseJob.location || [],
             is_morningbrew: true,
-            // Ensure we have feed source data
-            single_partner: baseJob.single_partner || { partner_name: '', payment_type: '' },
-            cpc: baseJob.cpc || 0,
-            cpa: baseJob.cpa || 0,
-            posted_at: baseJob.posted_at || Date.now(),
+            // Use preserved feed source data
+            single_partner: feedSource,
+            cpc: mbJob.cached_cpc !== undefined ? mbJob.cached_cpc : (baseJob.cpc || 0),
+            cpa: mbJob.cached_cpa !== undefined ? mbJob.cached_cpa : (baseJob.cpa || 0),
+            posted_at: postedAt,
             morningbrew: {
               id: mbJob.id,
               status: mbJob.status || 'suggested',
@@ -230,9 +246,25 @@ export function JobTableEnhancedV3() {
   }
 
   const handleRemoveFromCommunity = async (jobId: number, communityId: number) => {
+    // Find the job and check how many communities it has
+    const job = jobs.find(j => j.id === jobId)
+    if (!job || !job.morningbrew) return
+    
+    const currentCommunities = job.morningbrew.community_ids || []
+    const communityName = currentCommunities.find(c => c.id === communityId)?.community_name || 'community'
+    
+    // If this is the last community, show a friendly message
+    if (currentCommunities.length === 1) {
+      setToast({ 
+        message: `Can't remove last community. Use the X button to remove from Morning Brew entirely.`, 
+        type: 'error' 
+      })
+      return
+    }
+    
     try {
       await xanoService.removeJobFromCommunity(jobId, communityId)
-      setToast({ message: `Removed from community`, type: 'success' })
+      setToast({ message: `Removed from ${communityName}`, type: 'success' })
       await loadJobs()
     } catch (error) {
       console.error('API ERROR:', error)
@@ -494,17 +526,32 @@ export function JobTableEnhancedV3() {
         />
       )}
       
-      <Card className="shadow-lg backdrop-blur-sm bg-white/90 dark:bg-gray-900/90 border border-gray-200 dark:border-gray-800">
+      <Card className={cn(
+        "shadow-lg backdrop-blur-sm border",
+        showMorningBrewOnly 
+          ? "bg-gradient-to-br from-amber-50/95 via-white/95 to-orange-50/95 dark:from-amber-900/20 dark:via-gray-900/90 dark:to-orange-900/20 border-amber-200 dark:border-amber-800"
+          : "bg-white/90 dark:bg-gray-900/90 border-gray-200 dark:border-gray-800"
+      )}>
         <div className="p-4">
           <div className="mb-4">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold tracking-tight">
-                  {showMorningBrewOnly ? 'Morning Brew Curated Jobs' : 'All Job Postings'}
-                </h2>
-                <p className="text-muted-foreground">
+                <div className="flex items-center gap-3">
+                  {showMorningBrewOnly && (
+                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 shadow-md">
+                      <span className="text-white text-xl font-bold">☕</span>
+                    </div>
+                  )}
+                  <h2 className="text-2xl font-bold tracking-tight">
+                    {showMorningBrewOnly ? 'Morning Brew Curated Jobs' : 'All Job Postings'}
+                  </h2>
+                </div>
+                <p className={cn(
+                  "text-sm mt-1",
+                  showMorningBrewOnly ? "text-amber-700 dark:text-amber-300" : "text-muted-foreground"
+                )}>
                   {showMorningBrewOnly 
-                    ? `Viewing ${jobs.length} jobs curated for Morning Brew`
+                    ? `${jobs.length} handpicked opportunities for Morning Brew readers`
                     : `Manage and curate job listings from ${jobs.length} available positions`
                   }
                 </p>
@@ -547,10 +594,15 @@ export function JobTableEnhancedV3() {
               }}
             />
             
-            <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-sm overflow-hidden relative">
+            <div className={cn(
+              "rounded-lg border shadow-sm overflow-hidden relative",
+              showMorningBrewOnly
+                ? "border-amber-200 dark:border-amber-800 bg-white/95 dark:bg-gray-800/95"
+                : "border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm"
+            )}>
               {isToggling && (
                 <div className="absolute inset-0 bg-white/50 dark:bg-gray-900/50 z-50 flex items-center justify-center">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
                 </div>
               )}
               <div className="max-h-[calc(100vh-300px)] overflow-auto">
@@ -609,12 +661,27 @@ export function JobTableEnhancedV3() {
                         }}
                         className={cn(
                           "group cursor-pointer transition-all duration-200",
-                          // Priority: subtle left accent instead of full gradient
-                          row.original.morningbrew?.is_priority &&
+                          // Priority: Enhanced with Morning Brew golden accent
+                          row.original.morningbrew?.is_priority && showMorningBrewOnly && [
+                            "border-l-4 border-l-gradient-to-b from-amber-400 to-orange-500",
+                            "bg-gradient-to-r from-amber-50/40 via-orange-50/20 to-transparent",
+                            "hover:from-amber-100/50 hover:via-orange-100/30 dark:from-amber-500/10 dark:hover:from-amber-500/15",
+                            "shadow-[inset_0_1px_0_0_rgba(251,191,36,0.1)]"
+                          ],
+                          
+                          // Priority in regular view
+                          row.original.morningbrew?.is_priority && !showMorningBrewOnly &&
                             "border-l-2 border-l-amber-500 bg-gradient-to-r from-amber-50/20 to-transparent hover:from-amber-50/40 dark:from-amber-500/5 dark:hover:from-amber-500/10",
                           
-                          // MorningBrew (non-priority): subtle dot indicator
-                          row.original.is_morningbrew && !row.original.morningbrew?.is_priority &&
+                          // MorningBrew (non-priority): More prominent in MB view
+                          row.original.is_morningbrew && !row.original.morningbrew?.is_priority && showMorningBrewOnly && [
+                            "bg-gradient-to-r from-amber-50/20 to-transparent",
+                            "hover:from-amber-50/35 hover:to-orange-50/10",
+                            "dark:from-amber-400/5 dark:to-transparent dark:hover:from-amber-400/8"
+                          ],
+                          
+                          // MorningBrew in regular view
+                          row.original.is_morningbrew && !row.original.morningbrew?.is_priority && !showMorningBrewOnly &&
                             "bg-gradient-to-r from-sky-50/25 to-sky-50/15 hover:from-sky-50/40 hover:to-sky-50/30 dark:from-sky-400/5 dark:to-transparent dark:hover:from-sky-400/10",
                           
                           // Default hover
@@ -623,8 +690,12 @@ export function JobTableEnhancedV3() {
                           
                           // Enhanced selection with gradient and ring
                           row.getIsSelected() && [
-                            "bg-gradient-to-r from-primary/10 to-transparent dark:from-primary/15 dark:to-transparent",
-                            "ring-1 ring-primary/40 ring-inset",
+                            showMorningBrewOnly 
+                              ? "bg-gradient-to-r from-amber-100/30 to-transparent dark:from-amber-500/20 dark:to-transparent"
+                              : "bg-gradient-to-r from-primary/10 to-transparent dark:from-primary/15 dark:to-transparent",
+                            showMorningBrewOnly 
+                              ? "ring-1 ring-amber-400/40 ring-inset"
+                              : "ring-1 ring-primary/40 ring-inset",
                             "shadow-[inset_0_0_0_1px_rgba(0,0,0,0.02)]"
                           ]
                         )}
