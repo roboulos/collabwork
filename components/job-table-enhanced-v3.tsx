@@ -274,14 +274,22 @@ export function JobTableEnhancedV3() {
       } else {
         // Load all jobs from feeds - DEFAULT VIEW
         const response = await xanoService.listJobs(0);
+        
+        console.log("Sample job from API to check morningbrew fields:", response.items?.[0]?.morningbrew);
 
-        // FIX: Extract custom_company_name from morningbrew object if it exists
+        // FIX: Extract custom fields from morningbrew object if it exists
         const fixedJobs = (response.items || []).map((job: JobPosting) => ({
           ...job,
           custom_company_name:
             job.morningbrew?.custom_company_name || job.custom_company_name,
           custom_location:
             job.morningbrew?.custom_location || job.custom_location,
+          // Add the missing custom employment type and remote fields
+          morningbrew: job.morningbrew ? {
+            ...job.morningbrew,
+            custom_employment_type: job.morningbrew.custom_employment_type,
+            custom_is_remote: job.morningbrew.custom_is_remote
+          } : job.morningbrew
         }));
 
         setJobs(fixedJobs);
@@ -517,11 +525,22 @@ export function JobTableEnhancedV3() {
         }
 
         console.log("Updating job with payload:", updatePayload);
-        await xanoService.updateJob(updatePayload);
+        console.log("Current job data before update:", {
+          id: job.id,
+          is_morningbrew: job.is_morningbrew,
+          custom_employment_type: job.morningbrew?.custom_employment_type,
+          custom_is_remote: job.morningbrew?.custom_is_remote,
+          employment_type: job.employment_type,
+          is_remote: job.is_remote
+        });
+        
+        const updateResponse = await xanoService.updateJob(updatePayload);
+        console.log("Update response from API:", updateResponse);
       }
 
       setToast({ message: "Job updated successfully", type: "success" });
       // RELOAD JOBS TO GET FRESH DATA AFTER UPDATE
+      console.log("Reloading jobs after update...");
       await loadJobs();
     } catch (error) {
       console.error("Error updating job:", error);

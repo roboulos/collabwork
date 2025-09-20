@@ -139,7 +139,9 @@ class XanoService {
   }
 
   async updateJob(payload: UpdateJobPayload) {
+    console.log('XanoService.updateJob - Sending payload:', payload);
     const response = await this.axiosInstance.post('/api:microapp/ashley/update-job', payload);
+    console.log('XanoService.updateJob - Received response:', response.data);
     return response.data;
   }
 
