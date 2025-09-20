@@ -654,7 +654,17 @@ export function JobTableEnhancedV3() {
         onSaveEdit: handleSaveEdit,
         onCancelEdit: handleCancelEdit,
       }),
-    [editingCell, editValue],
+    [
+      editingCell,
+      editValue,
+      handleTogglePriority,
+      handleRemoveFromMorningBrew,
+      handleRemoveFromCommunity,
+      handleCopyJobText,
+      handleStartEdit,
+      handleSaveEdit,
+      handleCancelEdit,
+    ],
   );
 
   const table = useReactTable({
