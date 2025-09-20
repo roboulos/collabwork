@@ -415,14 +415,15 @@ export function JobTableEnhancedV3() {
       // Revert the optimistic update on error
       await loadJobs();
     }
-  }, [jobs, communities, loadJobs]);
+  }, [jobs, loadJobs]);
 
   const handleStartEdit = React.useCallback(
     (jobId: number, field: string, currentValue: string) => {
+      console.log("handleStartEdit called with:", { jobId, field, currentValue });
       setEditingCell({ jobId, field });
       setEditValue(currentValue || "");
     },
-    [setEditingCell, setEditValue],
+    [],
   );
 
   const handleSaveEdit = React.useCallback(async () => {
@@ -536,7 +537,7 @@ export function JobTableEnhancedV3() {
       setEditingCell(null);
       setEditValue("");
     }
-  }, [editingCell, editValue, jobs, communities, loadJobs]);
+  }, [editingCell, editValue, jobs, loadJobs]);
 
   const handleCancelEdit = React.useCallback(() => {
     setEditingCell(null);
@@ -813,6 +814,9 @@ export function JobTableEnhancedV3() {
                           key={row.id}
                           data-state={row.getIsSelected() && "selected"}
                           onClick={(e) => {
+                            // Prevent single click from interfering with double-click
+                            if (e.detail === 2) return; // This is a double-click, ignore it
+                            
                             const target = e.target as HTMLElement;
                             const isButton = target.closest("button");
                             const isLink = target.closest("a");

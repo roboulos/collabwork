@@ -157,7 +157,9 @@ export const createJobsColumnsV4 = ({
   setEditValue,
   onSaveEdit,
   onCancelEdit,
-}: JobsColumnsProps): ColumnDef<JobPosting>[] => [
+}: JobsColumnsProps): ColumnDef<JobPosting>[] => {
+  console.log("createJobsColumnsV4 called with onStartEdit:", typeof onStartEdit, onStartEdit);
+  return [
   {
     id: "select",
     header: ({ table }) => (
@@ -239,7 +241,10 @@ export const createJobsColumnsV4 = ({
       return (
         <div
           className={cn("group cursor-text", isSourceDeleted && "opacity-60")}
-          onDoubleClick={() => onStartEdit(job.id, "company", company)}
+          onDoubleClick={() => {
+            console.log("Double-click event fired for company:", job.id, company);
+            onStartEdit(job.id, "company", company);
+          }}
         >
           <span className="font-semibold text-sm text-gray-900 dark:text-gray-100 leading-tight group-hover:underline group-hover:decoration-dotted block">
             {company || "Unknown Company"}
@@ -1102,3 +1107,4 @@ export const createJobsColumnsV4 = ({
     enableHiding: false,
   },
 ];
+};
