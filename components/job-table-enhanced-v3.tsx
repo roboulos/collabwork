@@ -309,7 +309,7 @@ export function JobTableEnhancedV3() {
     }
   };
 
-  const handleTogglePriority = async (
+  const handleTogglePriority = React.useCallback(async (
     jobId: number,
     currentPriority: boolean,
   ) => {
@@ -343,9 +343,9 @@ export function JobTableEnhancedV3() {
       setToast({ message: "Failed to update priority", type: "error" });
       await loadJobs();
     }
-  };
+  }, [loadJobs]);
 
-  const handleRemoveFromMorningBrew = async (jobId: number) => {
+  const handleRemoveFromMorningBrew = React.useCallback(async (jobId: number) => {
     // Optimistic update
     setJobs((prevJobs) =>
       prevJobs.map((job) =>
@@ -363,9 +363,9 @@ export function JobTableEnhancedV3() {
       setToast({ message: "Failed to remove job", type: "error" });
       await loadJobs();
     }
-  };
+  }, [loadJobs]);
 
-  const handleRemoveFromCommunity = async (
+  const handleRemoveFromCommunity = React.useCallback(async (
     jobId: number,
     communityId: number,
   ) => {
@@ -415,18 +415,17 @@ export function JobTableEnhancedV3() {
       // Revert the optimistic update on error
       await loadJobs();
     }
-  };
+  }, [jobs, communities, loadJobs]);
 
-  const handleStartEdit = (
-    jobId: number,
-    field: string,
-    currentValue: string,
-  ) => {
-    setEditingCell({ jobId, field });
-    setEditValue(currentValue || "");
-  };
+  const handleStartEdit = React.useCallback(
+    (jobId: number, field: string, currentValue: string) => {
+      setEditingCell({ jobId, field });
+      setEditValue(currentValue || "");
+    },
+    [setEditingCell, setEditValue],
+  );
 
-  const handleSaveEdit = async () => {
+  const handleSaveEdit = React.useCallback(async () => {
     if (!editingCell) return;
 
     const job = jobs.find((j) => j.id === editingCell.jobId);
@@ -537,14 +536,14 @@ export function JobTableEnhancedV3() {
       setEditingCell(null);
       setEditValue("");
     }
-  };
+  }, [editingCell, editValue, jobs, communities, loadJobs]);
 
-  const handleCancelEdit = () => {
+  const handleCancelEdit = React.useCallback(() => {
     setEditingCell(null);
     setEditValue("");
-  };
+  }, []);
 
-  const handleCopyJobText = async (job: JobPosting) => {
+  const handleCopyJobText = React.useCallback(async (job: JobPosting) => {
     const title = job.morningbrew?.formatted_title || job.ai_title || job.title;
     const company = job.custom_company_name || job.company;
     const location =
@@ -562,7 +561,7 @@ export function JobTableEnhancedV3() {
     } catch {
       setToast({ message: "Failed to copy", type: "error" });
     }
-  };
+  }, []);
 
   const handleAddJobs = () => {
     const selectedRows = table.getFilteredSelectedRowModel().rows;
@@ -664,6 +663,7 @@ export function JobTableEnhancedV3() {
       handleStartEdit,
       handleSaveEdit,
       handleCancelEdit,
+      setEditValue,
     ],
   );
 
