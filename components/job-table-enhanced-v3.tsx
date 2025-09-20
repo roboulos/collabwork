@@ -44,22 +44,38 @@ export function JobTableEnhancedV3() {
   const [showMorningBrewOnly, setShowMorningBrewOnly] = useState(false)
   const [isToggling, setIsToggling] = useState(false)
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
-    location: false,
-    employment_type: false,
-    is_remote: false,
-    salary: false,
-    description: false,
+    location: true,
+    employment_type: true,
+    is_remote: true,
+    salary: true,
+    description: true,
     cpc: true,
     cpa: true,
     feed_source: true,
     mb_status: true,
     clicks: true,
-    payment_source: false,
-    post_source: false,
+    payment_source: true,
+    post_source: true,
     morningbrew_brands: true,
   })
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
+  const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({
+    select: 45,
+    company: 320,
+    job_formula: 500,
+    location: 280,
+    employment_type: 240,
+    is_remote: 140,
+    salary: 260,
+    mb_status: 220,
+    morningbrew_brands: 480,
+    clicks: 90,
+    cpc: 100,
+    cpa: 100,
+    feed_source: 200,
+    posted_at: 110,
+    actions: 110
+  })
   const [sorting, setSorting] = useState<SortingState>([
     { id: 'posted_at', desc: true }
   ])
@@ -82,7 +98,29 @@ export function JobTableEnhancedV3() {
   }, [])
 
   useEffect(() => {
-    loadJobs()
+    if (!isToggling) {
+      loadJobs()
+    }
+    // Update column visibility based on view
+    if (showMorningBrewOnly) {
+      // Hide these columns in Morning Brew view
+      setColumnVisibility(prev => ({
+        ...prev,
+        cpc: false,
+        cpa: false,
+        salary: false,
+        feed_source: false
+      }))
+    } else {
+      // Show all columns in default view
+      setColumnVisibility(prev => ({
+        ...prev,
+        cpc: true,
+        cpa: true,
+        salary: true,
+        feed_source: true
+      }))
+    }
   }, [showMorningBrewOnly]) // Reload when toggle changes
 
   const loadCommunities = async () => {
@@ -99,11 +137,14 @@ export function JobTableEnhancedV3() {
 
   const loadJobs = async (retryCount = 0) => {
     try {
-      setLoading(true)
+      // Don't set loading if we're toggling views to prevent flash
+      if (!isToggling) {
+        setLoading(true)
+      }
       if (showMorningBrewOnly) {
         // Load Morning Brew curated jobs
         const response = await xanoService.listMorningBrewJobs(1, '', 100)
-        // Transform the data to match our JobPosting interface
+        
         const transformedJobs = (response.items || []).map((mbJob: {
           id: number;
           job_posting_id: number;
@@ -126,9 +167,16 @@ export function JobTableEnhancedV3() {
           cached_cpc?: number;
           cached_cpa?: number;
           created_at?: number;
+          morningbrew?: {
+            custom_company_name?: string;
+            custom_location?: string;
+            custom_employment_type?: string;
+            custom_is_remote?: string;
+          };
         }) => {
           // Use job_posting data as base, then override with MB-specific data
           const baseJob = mbJob.job_posting || {} as JobPosting;
+          
           
           // Preserve feed source data when source is deleted
           const feedSource = mbJob.is_source_deleted && mbJob.cached_feed_source
@@ -145,11 +193,14 @@ export function JobTableEnhancedV3() {
             ...baseJob,
             // Then override with MB-specific fields
             id: mbJob.job_posting_id,
-            company: mbJob.company || baseJob.company || '',
+            company: baseJob.company || mbJob.company || '',
             title: mbJob.title || baseJob.title || '',
             ai_title: mbJob.formatted_title || baseJob.ai_title || baseJob.title || '',
             location: mbJob.location || baseJob.location || [],
             is_morningbrew: true,
+            // Get custom fields from morningbrew object (where they're actually stored)
+            custom_company_name: mbJob.morningbrew?.custom_company_name || baseJob.custom_company_name,
+            custom_location: mbJob.morningbrew?.custom_location || baseJob.custom_location,
             // Use preserved feed source data
             single_partner: feedSource,
             cpc: mbJob.cached_cpc !== undefined ? mbJob.cached_cpc : (baseJob.cpc || 0),
@@ -164,15 +215,25 @@ export function JobTableEnhancedV3() {
                 community_name: communities.find(c => c.id === id)?.community_name || `Brand ${id}`
               })),
               formatted_title: mbJob.formatted_title,
-              is_source_deleted: mbJob.is_source_deleted || false
+              is_source_deleted: mbJob.is_source_deleted || false,
+              custom_employment_type: mbJob.morningbrew?.custom_employment_type,
+              custom_is_remote: mbJob.morningbrew?.custom_is_remote
             }
           }
         })
         setJobs(transformedJobs)
       } else {
-        // Load all jobs from feeds
+        // Load all jobs from feeds - DEFAULT VIEW
         const response = await xanoService.listJobs(0)
-        setJobs(response.items || [])
+        
+        // FIX: Extract custom_company_name from morningbrew object if it exists
+        const fixedJobs = (response.items || []).map((job: JobPosting) => ({
+          ...job,
+          custom_company_name: job.morningbrew?.custom_company_name || job.custom_company_name,
+          custom_location: job.morningbrew?.custom_location || job.custom_location
+        }))
+        
+        setJobs(fixedJobs)
       }
     } catch (error: unknown) {
       console.error('Error loading jobs:', error)
@@ -188,7 +249,9 @@ export function JobTableEnhancedV3() {
       setToast({ message: 'Failed to load jobs. Please refresh the page.', type: 'error' })
       setJobs([])
     } finally {
-      setLoading(false)
+      if (!isToggling) {
+        setLoading(false)
+      }
     }
   }
 
@@ -353,13 +416,19 @@ export function JobTableEnhancedV3() {
           updatePayload.custom_is_remote = editValue
         }
 
+        console.log('Updating job with payload:', updatePayload)
         await xanoService.updateJob(updatePayload)
       }
       
       setToast({ message: 'Job updated successfully', type: 'success' })
+      // RELOAD JOBS TO GET FRESH DATA AFTER UPDATE
+      await loadJobs()
     } catch (error) {
       console.error('Error updating job:', error)
-      setToast({ message: 'Failed to update job', type: 'error' })
+      const axiosError = error as { response?: { data?: { message?: string } } }
+      console.error('Error response:', axiosError.response?.data)
+      const errorMessage = axiosError.response?.data?.message || 'Failed to update job'
+      setToast({ message: errorMessage, type: 'error' })
       await loadJobs()
     } finally {
       setEditingCell(null)
@@ -457,6 +526,9 @@ export function JobTableEnhancedV3() {
     }
   }
 
+  // Use jobs directly for the table
+  const tableData = jobs
+
   const columns = React.useMemo(() => createJobsColumnsV4({
     onTogglePriority: handleTogglePriority,
     onRemoveFromMorningBrew: handleRemoveFromMorningBrew,
@@ -471,7 +543,7 @@ export function JobTableEnhancedV3() {
   }), [editingCell, editValue])
 
   const table = useReactTable({
-    data: jobs,
+    data: tableData,
     columns,
     initialState: {
       pagination: {
@@ -526,44 +598,14 @@ export function JobTableEnhancedV3() {
         />
       )}
       
-      <Card className={cn(
-        "shadow-lg backdrop-blur-sm border",
-        showMorningBrewOnly 
-          ? "bg-gradient-to-br from-amber-50/95 via-white/95 to-orange-50/95 dark:from-amber-900/20 dark:via-gray-900/90 dark:to-orange-900/20 border-amber-200 dark:border-amber-800"
-          : "bg-white/90 dark:bg-gray-900/90 border-gray-200 dark:border-gray-800"
-      )}>
-        <div className="p-4">
-          <div className="mb-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="flex items-center gap-3">
-                  {showMorningBrewOnly && (
-                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 shadow-md">
-                      <span className="text-white text-xl font-bold">☕</span>
-                    </div>
-                  )}
-                  <h2 className="text-2xl font-bold tracking-tight">
-                    {showMorningBrewOnly ? 'Morning Brew Curated Jobs' : 'All Job Postings'}
-                  </h2>
-                </div>
-                <p className={cn(
-                  "text-sm mt-1",
-                  showMorningBrewOnly ? "text-amber-700 dark:text-amber-300" : "text-muted-foreground"
-                )}>
-                  {showMorningBrewOnly 
-                    ? `${jobs.length} handpicked opportunities for Morning Brew readers`
-                    : `Manage and curate job listings from ${jobs.length} available positions`
-                  }
-                </p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="space-y-4">
+      <div className="flex flex-col h-[calc(100vh-64px)]">
+        <div className="flex-1 overflow-hidden px-6 pt-6">
+          <div className="flex flex-col" style={{ height: 'calc(100vh - 104px)' }}>
+            
             <DataTableToolbar 
               table={table} 
               onAddJobs={handleAddJobs}
-              filterColumn="ai_title"
+              filterColumn="job_formula"
               brandOptions={communities.map(c => ({ 
                 value: c.id.toString(), 
                 label: c.community_name 
@@ -583,31 +625,26 @@ export function JobTableEnhancedV3() {
                 })).sort((a, b) => a.label.localeCompare(b.label))
               })()}
               showMorningBrewOnly={showMorningBrewOnly}
-              onToggleMorningBrewView={async (value) => {
+              onToggleMorningBrewView={(value) => {
                 setIsToggling(true)
                 setRowSelection({}) // Reset selection when toggling
-                // Use setTimeout to allow UI to update
+                // Small delay to prevent flash
                 setTimeout(() => {
                   setShowMorningBrewOnly(value)
-                  setIsToggling(false)
-                }, 0)
+                  setTimeout(() => setIsToggling(false), 100)
+                }, 50)
               }}
             />
             
-            <div className={cn(
-              "rounded-lg border shadow-sm overflow-hidden relative",
-              showMorningBrewOnly
-                ? "border-amber-200 dark:border-amber-800 bg-white/95 dark:bg-gray-800/95"
-                : "border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm"
-            )}>
-              {isToggling && (
-                <div className="absolute inset-0 bg-white/50 dark:bg-gray-900/50 z-50 flex items-center justify-center">
-                  <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
+            <div className="flex-1 rounded-lg border bg-white dark:bg-gray-950 shadow-sm overflow-hidden relative mt-4">
+              {(isToggling || loading) && (
+                <div className="absolute inset-0 bg-white/80 dark:bg-gray-900/80 z-50 flex items-center justify-center backdrop-blur-sm">
+                  <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
                 </div>
               )}
-              <div className="max-h-[calc(100vh-300px)] overflow-auto">
-                <Table>
-                  <TableHeader className="bg-white/90 dark:bg-gray-800/90 sticky top-0 z-10 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700">
+              <div className="h-full overflow-auto relative">
+                <Table className="relative min-w-[2000px]">
+                  <TableHeader className="bg-white dark:bg-gray-950 sticky top-0 z-20 border-b-2 border-gray-200 dark:border-gray-700 shadow-sm">
                   {table.getHeaderGroups().map((headerGroup) => (
                     <TableRow key={headerGroup.id}>
                       {headerGroup.headers.map((header) => {
@@ -642,7 +679,7 @@ export function JobTableEnhancedV3() {
                     </TableRow>
                   ))}
                 </TableHeader>
-                <TableBody className="divide-y divide-border/50">
+                <TableBody>
                   {table.getRowModel().rows?.length ? (
                     table.getRowModel().rows.map((row) => (
                       <TableRow
@@ -660,44 +697,8 @@ export function JobTableEnhancedV3() {
                           }
                         }}
                         className={cn(
-                          "group cursor-pointer transition-all duration-200",
-                          // Priority: Enhanced with Morning Brew golden accent
-                          row.original.morningbrew?.is_priority && showMorningBrewOnly && [
-                            "border-l-4 border-l-gradient-to-b from-amber-400 to-orange-500",
-                            "bg-gradient-to-r from-amber-50/40 via-orange-50/20 to-transparent",
-                            "hover:from-amber-100/50 hover:via-orange-100/30 dark:from-amber-500/10 dark:hover:from-amber-500/15",
-                            "shadow-[inset_0_1px_0_0_rgba(251,191,36,0.1)]"
-                          ],
-                          
-                          // Priority in regular view
-                          row.original.morningbrew?.is_priority && !showMorningBrewOnly &&
-                            "border-l-2 border-l-amber-500 bg-gradient-to-r from-amber-50/20 to-transparent hover:from-amber-50/40 dark:from-amber-500/5 dark:hover:from-amber-500/10",
-                          
-                          // MorningBrew (non-priority): More prominent in MB view
-                          row.original.is_morningbrew && !row.original.morningbrew?.is_priority && showMorningBrewOnly && [
-                            "bg-gradient-to-r from-amber-50/20 to-transparent",
-                            "hover:from-amber-50/35 hover:to-orange-50/10",
-                            "dark:from-amber-400/5 dark:to-transparent dark:hover:from-amber-400/8"
-                          ],
-                          
-                          // MorningBrew in regular view
-                          row.original.is_morningbrew && !row.original.morningbrew?.is_priority && !showMorningBrewOnly &&
-                            "bg-gradient-to-r from-sky-50/25 to-sky-50/15 hover:from-sky-50/40 hover:to-sky-50/30 dark:from-sky-400/5 dark:to-transparent dark:hover:from-sky-400/10",
-                          
-                          // Default hover
-                          !row.original.is_morningbrew &&
-                            "hover:bg-accent/30 dark:hover:bg-accent/20",
-                          
-                          // Enhanced selection with gradient and ring
-                          row.getIsSelected() && [
-                            showMorningBrewOnly 
-                              ? "bg-gradient-to-r from-amber-100/30 to-transparent dark:from-amber-500/20 dark:to-transparent"
-                              : "bg-gradient-to-r from-primary/10 to-transparent dark:from-primary/15 dark:to-transparent",
-                            showMorningBrewOnly 
-                              ? "ring-1 ring-amber-400/40 ring-inset"
-                              : "ring-1 ring-primary/40 ring-inset",
-                            "shadow-[inset_0_0_0_1px_rgba(0,0,0,0.02)]"
-                          ]
+                          "cursor-pointer transition-colors hover:bg-gray-50/50 dark:hover:bg-gray-900/50",
+                          row.original.is_morningbrew && row.original.morningbrew?.is_priority && "bg-amber-50/30 hover:bg-amber-50/50"
                         )}
                       >
                         {row.getVisibleCells().map((cell) => (
@@ -725,10 +726,12 @@ export function JobTableEnhancedV3() {
               </div>
             </div>
             
-            <DataTablePagination table={table} />
+            <div className="mt-3 pt-3 border-t border-gray-200">
+              <DataTablePagination table={table} />
+            </div>
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* Add Jobs Modal */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>

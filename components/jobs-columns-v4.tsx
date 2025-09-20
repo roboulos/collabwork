@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { JobPosting } from "@/lib/xano"
 import { DataTableColumnHeader } from "./data-table/data-table-column-header"
-import { Star, X, Copy, ExternalLink, Check, XIcon, AlertTriangle } from 'lucide-react'
+import { Star, X, Copy, ExternalLink, Check, XIcon, Sparkles, Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { 
   Tooltip,
@@ -64,36 +64,60 @@ const MBStatusBadge = ({ status }: { status?: string }) => {
   const statusConfig: Record<string, { 
     label: string; 
     className: string;
+    icon?: 'sparkles' | 'plus';
   }> = {
     suggested: { 
-      label: 'Suggested', 
-      className: 'bg-blue-500 text-white border-blue-600' 
+      label: 'Curated', 
+      className: 'bg-purple-50 text-purple-700 border-purple-200 font-medium',
+      icon: 'sparkles'
+    },
+    user_added: {
+      label: 'Added',
+      className: 'bg-blue-50 text-blue-700 border-blue-200 font-medium',
+      icon: 'plus'
     },
     approved: { 
       label: 'Approved', 
-      className: 'bg-green-500 text-white border-green-600' 
+      className: 'bg-green-100 text-green-700 border-green-300'
     },
     published: { 
       label: 'Published', 
-      className: 'bg-purple-500 text-white border-purple-600' 
-    },
-    rejected: { 
-      label: 'Rejected', 
-      className: 'bg-red-500 text-white border-red-600' 
+      className: 'bg-blue-100 text-blue-700 border-blue-300'
     },
     archived: { 
       label: 'Archived', 
-      className: 'bg-gray-500 text-white border-gray-600' 
+      className: 'bg-gray-200 text-gray-600 border-gray-400'
+    },
+    deleted: { 
+      label: 'Deleted', 
+      className: 'bg-red-100 text-red-700 border-red-300'
+    },
+    rejected: { 
+      label: 'Rejected', 
+      className: 'bg-orange-100 text-orange-700 border-orange-300'
+    },
+    closed: { 
+      label: 'Closed', 
+      className: 'bg-gray-300 text-gray-800 border-gray-500'
     }
   };
   
   const config = statusConfig[status] || { 
     label: status, 
-    className: 'bg-gray-500 text-white' 
+    className: 'bg-gray-100 text-gray-700 border-gray-300'
   };
   
   return (
-    <Badge className={cn("text-xs font-medium", config.className)}>
+    <Badge className={cn(
+      config.className,
+      "border inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs"
+    )}>
+      {status === 'suggested' && (
+        <Sparkles className="h-3 w-3" />
+      )}
+      {status === 'user_added' && (
+        <Plus className="h-3 w-3" />
+      )}
       {config.label}
     </Badge>
   );
@@ -134,9 +158,9 @@ export const createJobsColumnsV4 = ({
     ),
     enableSorting: false,
     enableHiding: false,
-    size: 40,
-    minSize: 40,
-    maxSize: 40,
+    size: 36,
+    minSize: 36,
+    maxSize: 36,
   },
   {
     accessorKey: "company",
@@ -179,27 +203,21 @@ export const createJobsColumnsV4 = ({
       return (
         <div 
           className={cn(
-            "flex flex-col space-y-0.5 group cursor-text",
+            "group cursor-text",
             isSourceDeleted && "opacity-60"
           )}
           onDoubleClick={() => onStartEdit(job.id, 'company', company)}
         >
-          {isSourceDeleted && (
-            <div className="flex items-center gap-1 text-xs mb-0.5">
-              <AlertTriangle className="h-3 w-3 text-red-500" />
-              <span className="text-red-600 font-medium">Source Deleted</span>
-            </div>
-          )}
-          <span className="font-semibold text-sm leading-tight group-hover:underline group-hover:decoration-dotted">
+          <span className="font-semibold text-sm text-gray-900 dark:text-gray-100 leading-tight group-hover:underline group-hover:decoration-dotted block">
             {company || 'Unknown Company'}
           </span>
           {job.morningbrew?.cached_company && job.morningbrew.cached_company !== company && (
-            <span className="text-xs text-muted-foreground/70 italic">
+            <span className="text-xs text-muted-foreground/70 italic block mt-0.5">
               was: {job.company}
             </span>
           )}
           {(job.sector || job.industry) && (
-            <span className="text-xs text-muted-foreground/80 leading-tight">
+            <span className="text-xs text-muted-foreground/80 leading-tight block mt-1">
               {job.sector && <span>{job.sector}</span>}
               {job.sector && job.industry && <span className="mx-1 opacity-40">•</span>}
               {job.industry && <span>{job.industry}</span>}
@@ -209,19 +227,26 @@ export const createJobsColumnsV4 = ({
       )
     },
     enableHiding: true,
-    size: 200,
-    minSize: 120,
-    maxSize: 300,
+    size: 280,
+    minSize: 200,
+    maxSize: 400,
   },
   {
-    accessorKey: "ai_title",
+    id: "job_formula",
+    accessorFn: (row) => {
+      const jobTitle = row.morningbrew?.formatted_title || row.ai_title || row.title || 'Untitled Position'
+      const companyName = row.custom_company_name || row.company || 'Company'
+      const location = row.custom_location || (row.location?.[0] ? 
+        `${row.location[0].city || ''}${row.location[0].state ? `, ${row.location[0].state}` : ''}` 
+        : 'Remote')
+      return `${jobTitle} ${companyName} ${location}`
+    },
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Position" />
+      <DataTableColumnHeader column={column} title="Job Formula" />
     ),
     cell: ({ row }) => {
       const job = row.original
       const isEditing = editingCell?.jobId === job.id && editingCell?.field === 'title'
-      const title = job.morningbrew?.formatted_title || job.ai_title || job.title
       const isSourceDeleted = job.morningbrew?.is_source_deleted
       
       if (isEditing) {
@@ -251,8 +276,10 @@ export const createJobsColumnsV4 = ({
         )
       }
       
+      const title = job.morningbrew?.formatted_title || job.ai_title || job.title
+      
       return (
-        <div className={cn("space-y-0.5", isSourceDeleted && "opacity-60")}>
+        <div className={cn("space-y-1.5", isSourceDeleted && "opacity-60")}>
           <div 
             className="group cursor-text"
             onDoubleClick={() => onStartEdit(job.id, 'title', title)}
@@ -265,14 +292,14 @@ export const createJobsColumnsV4 = ({
                 className="flex items-center gap-1.5 text-blue-600 hover:text-blue-800 hover:underline text-sm font-medium"
                 onClick={(e) => e.stopPropagation()}
               >
-                <span className="leading-tight">
+                <span className="leading-tight font-medium">
                   {title || 'Untitled Position'}
                 </span>
                 <ExternalLink className="h-3.5 w-3.5 flex-shrink-0" />
               </a>
             ) : (
               <span className={cn(
-                "font-medium text-sm leading-tight block group-hover:underline group-hover:decoration-dotted",
+                "font-semibold text-sm text-gray-900 dark:text-gray-100 leading-tight block group-hover:underline group-hover:decoration-dotted",
                 isSourceDeleted && "line-through decoration-red-400"
               )}>
                 {title || 'Untitled Position'}
@@ -284,39 +311,6 @@ export const createJobsColumnsV4 = ({
               </span>
             )}
           </div>
-          <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground/80">
-            {typeof job.ai_confidence_score === 'number' && (
-              <span className="tabular-nums">
-                AI {job.ai_confidence_score}%
-              </span>
-            )}
-            {job.ai_top_tags?.length ? (
-              <>
-                <span className="opacity-40">•</span>
-                {job.ai_top_tags.slice(0, 2).map((tag: string, i: number) => (
-                  <span key={i} className="truncate max-w-[12ch]">{tag}</span>
-                ))}
-                {job.ai_top_tags.length > 2 && (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button
-                          className="underline decoration-dotted underline-offset-2 hover:text-foreground transition-colors"
-                          onClick={(e) => e.stopPropagation()}
-                          aria-label={`Show ${job.ai_top_tags.length - 2} more tags`}
-                        >
-                          +{job.ai_top_tags.length - 2}
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        {job.ai_top_tags.join(', ')}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                )}
-              </>
-            ) : null}
-          </div>
         </div>
       )
     },
@@ -326,9 +320,9 @@ export const createJobsColumnsV4 = ({
         title.toLowerCase().includes(term)
       )
     },
-    size: 280,
-    minSize: 180,
-    maxSize: 400,
+    size: 400,
+    minSize: 300,
+    maxSize: 550,
     enableResizing: true,
   },
   {
@@ -400,9 +394,9 @@ export const createJobsColumnsV4 = ({
       )
     },
     enableHiding: true,
-    size: 150,
-    minSize: 100,
-    maxSize: 250,
+    size: 220,
+    minSize: 180,
+    maxSize: 300,
   },
   {
     accessorKey: "employment_type",
@@ -468,9 +462,9 @@ export const createJobsColumnsV4 = ({
       return value.includes(row.getValue(id))
     },
     enableHiding: true,
-    size: 120,
-    minSize: 100,
-    maxSize: 150,
+    size: 220,
+    minSize: 180,
+    maxSize: 300,
   },
   {
     accessorKey: "is_remote",
@@ -572,7 +566,7 @@ export const createJobsColumnsV4 = ({
       return value.includes(row.getValue(id))
     },
     enableHiding: true,
-    size: 140,
+    size: 200,
   },
   {
     id: "mb_status",
@@ -598,7 +592,7 @@ export const createJobsColumnsV4 = ({
       )
     },
     enableHiding: true,
-    size: 140,
+    size: 220,
   },
   {
     id: "cpc",
@@ -691,6 +685,9 @@ export const createJobsColumnsV4 = ({
       )
     },
     enableHiding: true,
+    size: 200,
+    minSize: 150,
+    maxSize: 250,
   },
   {
     accessorKey: "posted_at",
@@ -729,13 +726,14 @@ export const createJobsColumnsV4 = ({
       }
       
       return (
-        <Badge variant="outline" className={`text-xs ${
-          diffDays <= 1 ? 'text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-700' :
-          diffDays < 7 ? 'text-blue-700 dark:text-blue-400 border-blue-300 dark:border-blue-700' :
-          diffDays < 30 ? 'text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700' :
-          diffDays < 365 ? 'text-red-700 dark:text-red-400 border-red-300 dark:border-red-700' :
-          'text-gray-600 dark:text-gray-400'
-        }`}>
+        <Badge variant="outline" className={cn(
+          "text-xs font-medium px-2 py-0.5",
+          diffDays <= 1 ? 'bg-green-50 text-green-700 border-green-200' :
+          diffDays < 7 ? 'bg-blue-50 text-blue-700 border-blue-200' :
+          diffDays < 30 ? 'bg-amber-50 text-amber-700 border-amber-200' :
+          diffDays < 365 ? 'bg-red-50 text-red-700 border-red-200' :
+          'bg-gray-50 text-gray-600 border-gray-200'
+        )}>
           {timeAgo}
         </Badge>
       )
@@ -752,11 +750,17 @@ export const createJobsColumnsV4 = ({
       const job = row.original
       const clicks = job.morningbrew?.click_count || 0
       return (
-        <div className="text-center">
-          <Badge variant={clicks > 0 ? "default" : "secondary"} className="min-w-[2.5rem]">
-            {clicks}
-          </Badge>
-        </div>
+        <Badge 
+          variant="outline" 
+          className={cn(
+            "flex w-10 h-6 items-center justify-center font-medium text-xs mx-auto",
+            clicks > 0 
+              ? "bg-green-50 text-green-700 border-green-200" 
+              : "bg-gray-50 text-gray-500 border-gray-200"
+          )}
+        >
+          {clicks}
+        </Badge>
       )
     },
     enableHiding: true,
@@ -785,13 +789,20 @@ export const createJobsColumnsV4 = ({
       return (
         <div className="flex flex-wrap items-center gap-1">
           {job.morningbrew?.is_priority && (
-            <Badge variant="warning" className="font-semibold">
+            <Badge className="bg-amber-50 text-amber-700 border-amber-200 font-medium px-2 py-0.5">
+              <Star className="h-3 w-3 mr-1 fill-amber-500" />
               Priority
             </Badge>
           )}
           {visible.map(c => (
             <div key={c.id} className="group/badge relative inline-flex items-center">
-              <Badge variant="secondary" className="text-xs pr-7 py-1 relative">
+              <Badge 
+                variant="outline"
+                className={cn(
+                  "text-xs font-medium bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100 transition-colors py-0.5",
+                  onRemoveFromCommunity ? "pr-6" : "px-2"
+                )}
+              >
                 {c.community_name}
               </Badge>
               {onRemoveFromCommunity ? (
@@ -800,16 +811,12 @@ export const createJobsColumnsV4 = ({
                   onClick={(e) => {
                     e.stopPropagation()
                     e.preventDefault()
-                    console.log('Button clicked for job', job.id, 'community', c.id)
-                    console.log('onRemoveFromCommunity exists?', !!onRemoveFromCommunity)
-                    console.log('Calling onRemoveFromCommunity NOW')
                     onRemoveFromCommunity(job.id, c.id)
-                    console.log('Called onRemoveFromCommunity - did it work?')
                   }}
-                  className="absolute right-1 top-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 hover:bg-destructive/10 rounded p-0.5 z-20 border border-gray-200 dark:border-gray-700"
+                  className="absolute right-0.5 top-1/2 -translate-y-1/2 bg-white border border-gray-200 rounded-full p-0.5 opacity-0 group-hover/badge:opacity-100 transition-opacity hover:bg-red-50 hover:border-red-300"
                   aria-label={`Remove from ${c.community_name}`}
                 >
-                  <X className="h-3 w-3 text-destructive" />
+                  <X className="h-2.5 w-2.5 text-gray-600 hover:text-red-600" />
                 </button>
               ) : null}
             </div>
@@ -818,7 +825,7 @@ export const createJobsColumnsV4 = ({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Badge variant="outline" className="text-xs cursor-help">
+                  <Badge variant="outline" className="text-xs cursor-help bg-gray-50 text-gray-600 border-gray-200 px-2 py-0.5 font-medium">
                     +{overflow}
                   </Badge>
                 </TooltipTrigger>
@@ -837,9 +844,15 @@ export const createJobsColumnsV4 = ({
       return value.some((v: string) => brandIds.includes(v))
     },
     enableHiding: true,
+    size: 380,
+    minSize: 320,
+    maxSize: 500,
   },
   {
     id: "actions",
+    size: 100,
+    minSize: 80,
+    maxSize: 120,
     cell: ({ row }) => {
       const job = row.original
       
