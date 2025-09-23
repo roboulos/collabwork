@@ -325,18 +325,15 @@ export const createJobsColumnsV4 = ({
   {
     id: "job_formula",
     accessorFn: (row) => {
-      const jobTitle =
-        row.morningbrew?.formatted_title ||
-        row.ai_title ||
-        row.title ||
-        "Untitled Position";
+      // For Morning Brew jobs with formatted_title, use it
+      if (row.morningbrew?.formatted_title) {
+        return row.morningbrew.formatted_title;
+      }
+      // Otherwise construct from raw data (NOT ai_title)
+      const jobTitle = row.title || "Untitled Position";
       const companyName = row.custom_company_name || row.company || "Company";
-      const location =
-        row.custom_location ||
-        (row.location?.[0]
-          ? `${row.location[0].city || ""}${row.location[0].state ? `, ${row.location[0].state}` : ""}`
-          : "Remote");
-      return `${jobTitle} ${companyName} ${location}`;
+      const remoteStatus = row.is_remote ? "Remote" : "On-site";
+      return `${jobTitle} - ${companyName} - ${remoteStatus}`;
     },
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Job Formula" />
@@ -357,12 +354,12 @@ export const createJobsColumnsV4 = ({
         // Use the formatted_title directly - this is what gets updated
         displayFormula = job.morningbrew.formatted_title;
         // Still extract parts for other UI elements if needed
-        title = job.ai_title || job.title || "Untitled Position";
+        title = job.title || "Untitled Position";  // Use job.title, NOT ai_title
         company = job.custom_company_name || job.company || "Company";
         remoteStatus = job.morningbrew?.custom_is_remote || (job.is_remote ? "Remote" : "On-site");
       } else {
         // Fallback: construct formula if formatted_title not available
-        title = job.ai_title || job.title || "Untitled Position";
+        title = job.title || "Untitled Position";  // Use job.title, NOT ai_title
         company = job.custom_company_name || job.company || "Company";
         
         // Determine remote status
@@ -418,9 +415,9 @@ export const createJobsColumnsV4 = ({
                   )}
                 </div>
                 {job.morningbrew?.formatted_title &&
-                  job.morningbrew.formatted_title !== job.ai_title && (
+                  job.morningbrew.formatted_title !== job.title && (
                     <span className="text-xs text-muted-foreground/70 italic">
-                      was: {job.ai_title || job.title}
+                      was: {job.title}
                     </span>
                   )}
               </div>
@@ -468,7 +465,7 @@ export const createJobsColumnsV4 = ({
       );
     },
     filterFn: (row, id, value) => {
-      const title = row.original.ai_title || row.original.title || "";
+      const title = row.original.title || "";
       return value
         .toLowerCase()
         .split(" ")

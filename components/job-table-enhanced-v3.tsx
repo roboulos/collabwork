@@ -913,7 +913,8 @@ export function JobTableEnhancedV3() {
   }, []);
 
   const handleCopyJobText = React.useCallback(async (job: JobPosting) => {
-    const title = job.morningbrew?.formatted_title || job.ai_title || job.title;
+    // Use formatted_title if available, otherwise use job.title (NOT ai_title)
+    const title = job.morningbrew?.formatted_title || job.title || "Untitled Position";
     const company = job.custom_company_name || job.company;
     
     // Determine work type - check custom field first, then fallback to is_remote
