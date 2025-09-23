@@ -267,6 +267,72 @@ filters: {
 
 ---
 
+## 8. 🔴 CRITICAL - Job Formula Sync Implementation
+
+### Issue (Identified 9/23 evening)
+- Job Formula must be editable and synced across all views
+- Currently using `formatted_title` field in morningbrew_jobs table
+- Need consistency between admin frontend, Morning Brew view, and brew frontend
+
+### Current Implementation Analysis
+
+#### Frontend (ashleyfrontend)
+- **Job Formula Display**: `{title} - {company} - {remoteStatus}`
+- **Location**: components/jobs-columns-v4.tsx, lines 388 & 399
+- **Current Logic**: 
+  ```typescript
+  const title = job.morningbrew?.formatted_title || job.ai_title || job.title;
+  const company = job.custom_company_name || job.company || "Company";
+  const remoteStatus = [custom_is_remote logic] // Remote/Hybrid/On-site
+  ```
+- **Editable**: Only the title portion is currently editable (edits `formatted_title`)
+- **Copy Function**: Copies the full formula to clipboard
+
+#### Backend (Xano)
+- **Table**: morningbrew_jobs
+- **Field**: `formatted_title` (text field, nullable) - EXISTS ✅
+- **Current Update Endpoint**: ashley/update-job
+  - Does NOT currently accept formatted_title parameter
+  - Only updates: custom_company_name, custom_location, custom_employment_type, custom_is_remote, notes
+
+### What Needs to Change
+
+#### 1. Backend Changes Needed
+- **ashley/update-job endpoint**: Add `formatted_title` parameter
+- **ashley/add-job endpoint**: Generate and save initial Job Formula
+- **ashley/bulk-add endpoint**: Generate and save initial Job Formula for each job
+- **Formula Generation Logic**:
+  ```
+  formatted_title = "{title} - {company} - {remoteStatus}"
+  where:
+  - title = ai_title || title || "Untitled Position"
+  - company = custom_company_name || company || "Company"  
+  - remoteStatus = custom_is_remote || (is_remote ? "Remote" : "On-site")
+  ```
+
+#### 2. Frontend Changes Needed
+- **Make entire Job Formula editable** (not just title portion)
+- **Parse edited formula** back into components if needed
+- **Save full formula** to formatted_title field
+- **Display consistency** across all views
+
+#### 3. Sync Requirements
+- When Job Formula is edited in admin view, it updates formatted_title
+- Morning Brew view displays the formatted_title as-is
+- Brew frontend displays formatted_title in Job Formula column
+- All views show exact same text for consistency
+
+### Implementation Steps
+1. [ ] Add formatted_title parameter to ashley/update-job endpoint
+2. [ ] Update ashley/add-job to generate initial Job Formula
+3. [ ] Update ashley/bulk-add to generate initial Job Formula
+4. [ ] Make Job Formula fully editable in frontend
+5. [ ] Test sync across all views
+
+### Status: ❌ Not Started - NEW BLOCKER
+
+---
+
 ## Progress Tracking
 
 ### Completed Today
@@ -328,11 +394,13 @@ filters: {
 
 ### ❌ NOT STARTED
 1. **Remove Test Communities** - Waiting for list from Summer
+2. **Job Formula Sync Implementation** - NEW CRITICAL BLOCKER (See section 8 below)
 
 ### 🚨 KEY BLOCKERS
 1. **Database Performance** - Both search and feed filter issues stem from 2.7M record volume
 2. **Index Rebuilds** - Xano struggles with large dataset indexing
 3. **Query Optimization** - Current query structure with addons causes timeouts
+4. **Job Formula Sync** - Critical feature not implemented, will block acceptance
 
 ### 📋 RECOMMENDED NEXT STEPS
 1. Add database index on `feed_id` column in job_posting table
