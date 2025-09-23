@@ -307,6 +307,9 @@ export function JobTableEnhancedV3() {
 
   useEffect(() => {
     if (!isToggling) {
+      // Clear cached data when switching views for fresh load
+      setJobs([]);
+      setTotalItems(0);
       loadJobs();
     }
     // Update column visibility based on view
@@ -373,6 +376,7 @@ export function JobTableEnhancedV3() {
             }>;
             status?: string;
             click_count?: number;
+            is_priority?: boolean;  // Add this field to the type
             community_ids?: number[];
             formatted_title?: string;
             is_source_deleted?: boolean;
@@ -446,6 +450,7 @@ export function JobTableEnhancedV3() {
                 id: mbJob.id,
                 status: mbJob.status || "suggested",
                 click_count: mbJob.click_count || 0,
+                is_priority: mbJob.is_priority || false,  // Include the priority flag!
                 community_ids: (mbJob.community_ids || []).map(
                   (id: number) => ({
                     id: id,
@@ -818,14 +823,16 @@ export function JobTableEnhancedV3() {
   const handleCopyJobText = React.useCallback(async (job: JobPosting) => {
     const title = job.morningbrew?.formatted_title || job.ai_title || job.title;
     const company = job.custom_company_name || job.company;
-    const location =
-      job.custom_location ||
-      (job.location && job.location[0]
-        ? `${job.location[0].city || ""}${job.location[0].state ? `, ${job.location[0].state}` : ""}`
-        : "Remote");
-    const remote = job.is_remote ? " (Remote)" : " (On-site)";
+    
+    // Determine work type - check custom field first, then fallback to is_remote
+    let workType = "On-site"; // default
+    if (job.morningbrew?.custom_is_remote) {
+      workType = job.morningbrew.custom_is_remote; // Use Ashley's edited value (Remote/Hybrid/On-site)
+    } else if (job.is_remote) {
+      workType = "Remote";
+    }
 
-    const formattedText = `${title} at ${company} - ${location}${remote}`;
+    const formattedText = `${title} at ${company} (${workType})`;
 
     try {
       await navigator.clipboard.writeText(formattedText);
@@ -899,6 +906,13 @@ export function JobTableEnhancedV3() {
         message: `Added ${selectedJobIds.length} jobs to MorningBrew`,
         type: "success",
       });
+      
+      // Refresh data to show the updated state
+      await loadJobs();
+      
+      // Clear selection and close modal
+      setRowSelection({});
+      setModalOpen(false);
     } catch (error) {
       console.error("Error submitting jobs:", error);
       setToast({ message: "Failed to add jobs", type: "error" });

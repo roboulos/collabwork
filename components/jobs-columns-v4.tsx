@@ -463,7 +463,7 @@ export const createJobsColumnsV4 = ({
       }
 
       const displayLocation =
-        job.morningbrew?.cached_location || location || "Not specified";
+        location || job.morningbrew?.cached_location || "Not specified";
 
       return (
         <div className="group relative min-h-[48px] py-2">

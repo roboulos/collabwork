@@ -240,6 +240,18 @@
   }
 }
 
+@keyframes loading-bar {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
 /* Animation utilities */
 .animate-slide-up {
   animation: slide-up 0.3s var(--ease-out-expo);
@@ -276,6 +288,11 @@
 /* Aurora background animation */
 .animate-aurora-background {
   animation: aurora-background 20s linear infinite;
+}
+
+/* Loading bar animation */
+.animate-loading-bar {
+  animation: loading-bar 2s ease-in-out infinite;
 }
 
 /* Skeleton loading */

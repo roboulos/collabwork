@@ -28,28 +28,33 @@ export function LoadingOverlay({
   return (
     <div className={cn(
       "absolute inset-0 z-50 flex items-center justify-center",
-      "bg-gradient-to-br from-white/95 to-gray-50/95",
-      "dark:from-gray-900/95 dark:to-gray-950/95",
-      "backdrop-blur-md transition-all duration-300",
+      "bg-white/60 dark:bg-gray-950/60",
+      "backdrop-blur-xl transition-all duration-300",
       className
     )}>
-      <div className="flex flex-col items-center justify-center p-8 rounded-2xl bg-white/90 dark:bg-gray-900/90 shadow-2xl border border-gray-200/50 dark:border-gray-700/50">
-        {/* Just one clean spinner */}
-        <div className="relative flex items-center justify-center h-16 w-16">
-          <Loader2 className="h-10 w-10 animate-spin text-blue-600 dark:text-blue-400" />
-        </div>
+      <div className="relative">
+        {/* Animated gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 rounded-3xl blur-2xl opacity-20 animate-pulse" />
         
-        {/* Message only */}
-        <div className="mt-6 flex flex-col items-center">
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 animate-pulse">
-            {message || getDefaultMessage()}
-          </p>
+        <div className="relative flex flex-col items-center justify-center p-10 rounded-3xl bg-white/95 dark:bg-gray-900/95 shadow-2xl border border-gray-200/20 dark:border-gray-700/20 min-w-[320px]">
+          {/* Modern spinner with gradient */}
+          <div className="relative flex items-center justify-center h-20 w-20 mb-6">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full animate-spin [animation-duration:2s]" style={{
+              background: "conic-gradient(from 0deg, transparent, #3b82f6, #8b5cf6, transparent)"
+            }} />
+            <div className="absolute inset-2 bg-white dark:bg-gray-900 rounded-full" />
+          </div>
           
-          {/* Progress dots */}
-          <div className="flex items-center gap-1 mt-3">
-            <span className="h-1.5 w-1.5 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: "0ms" }} />
-            <span className="h-1.5 w-1.5 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: "150ms" }} />
-            <span className="h-1.5 w-1.5 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: "300ms" }} />
+          {/* Message with better typography */}
+          <div className="flex flex-col items-center space-y-2">
+            <p className="text-base font-semibold text-gray-800 dark:text-gray-200">
+              {message || getDefaultMessage()}
+            </p>
+            
+            {/* Animated loading bar */}
+            <div className="w-48 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mt-4">
+              <div className="h-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full animate-loading-bar" />
+            </div>
           </div>
         </div>
       </div>
