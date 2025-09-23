@@ -35,7 +35,6 @@ import {
 } from "./ui/dialog";
 import { TableSkeleton } from "./ui/skeleton";
 import {
-  Table,
   TableBody,
   TableCell,
   TableHead,
@@ -80,12 +79,25 @@ function VirtualizedTable({ table, columns }: VirtualizedTableProps) {
   // Column sizing is available from table state if needed
   // const columnSizing = table.getState().columnSizing;
 
+  // Get column definitions with explicit widths for perfect alignment
+  const columnHeaders = table.getFlatHeaders();
+  
   return (
     <div ref={parentRef} className="h-full overflow-auto relative">
       <div className="min-w-[2000px]">
-        {/* Sticky header outside the table */}
+        {/* Sticky header with same table structure */}
         <div className="sticky top-0 z-20 bg-white dark:bg-gray-950">
-          <Table>
+          <table className="w-full table-fixed">
+            <colgroup>
+              {columnHeaders.map((header) => (
+                <col
+                  key={header.id}
+                  style={{
+                    width: header.getSize(),
+                  }}
+                />
+              ))}
+            </colgroup>
             <TableHeader className="border-b-2 border-gray-200 dark:border-gray-700 shadow-sm">
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
@@ -93,7 +105,6 @@ function VirtualizedTable({ table, columns }: VirtualizedTableProps) {
                 <TableHead
                   key={`${headerGroup.id}_${header.id}`}
                   colSpan={header.colSpan}
-                  style={{ width: header.getSize() }}
                   className="relative"
                 >
                   {header.isPlaceholder ? null : (
@@ -117,11 +128,21 @@ function VirtualizedTable({ table, columns }: VirtualizedTableProps) {
             </TableRow>
           ))}
         </TableHeader>
-          </Table>
+          </table>
         </div>
         
-        {/* Table body with virtualization */}
-        <Table className="relative">
+        {/* Table body with same column structure */}
+        <table className="w-full table-fixed relative">
+          <colgroup>
+            {columnHeaders.map((header) => (
+              <col
+                key={header.id}
+                style={{
+                  width: header.getSize(),
+                }}
+              />
+            ))}
+          </colgroup>
           <TableBody>
           {rows.length === 0 ? (
             <TableRow>
@@ -170,11 +191,6 @@ function VirtualizedTable({ table, columns }: VirtualizedTableProps) {
                     {row.getVisibleCells().map((cell) => (
                       <TableCell 
                         key={`${row.id}_${cell.column.id}`}
-                        style={{ 
-                          width: cell.column.getSize(),
-                          minWidth: cell.column.columnDef.minSize,
-                          maxWidth: cell.column.columnDef.maxSize,
-                        }}
                       >
                         {flexRender(
                           cell.column.columnDef.cell,
@@ -201,7 +217,7 @@ function VirtualizedTable({ table, columns }: VirtualizedTableProps) {
             </>
           )}
         </TableBody>
-        </Table>
+        </table>
       </div>
     </div>
   );
