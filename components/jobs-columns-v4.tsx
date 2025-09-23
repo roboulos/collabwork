@@ -93,7 +93,6 @@ const EditingCell = ({
       className="h-full w-full px-5 py-3 text-base border-0 bg-transparent focus:outline-none font-medium text-gray-900 dark:text-gray-100"
       placeholder={placeholder}
       autoFocus
-      onFocus={(e) => e.target.select()}
     />
     <div className="flex items-center pr-2">
       <Button
@@ -988,7 +987,7 @@ export const createJobsColumnsV4 = ({
           {visible.map((c) => (
             <div
               key={c.id}
-              className="group/badge relative inline-flex items-center"
+              className="group/badge relative inline-flex items-center pr-6"
             >
               <span
                 className={cn(
@@ -1006,7 +1005,7 @@ export const createJobsColumnsV4 = ({
                     e.preventDefault();
                     onRemoveFromCommunity(job.id, c.id);
                   }}
-                  className="absolute right-1 top-1/2 -translate-y-1/2 bg-white border border-gray-200 rounded-full p-0.5 opacity-50 group-hover/badge:opacity-100 hover:opacity-100 transition-opacity hover:bg-red-50 hover:border-red-300 z-10 cursor-pointer"
+                  className="absolute -right-1 top-1/2 -translate-y-1/2 bg-white border border-gray-200 rounded-full p-0.5 opacity-50 group-hover/badge:opacity-100 hover:opacity-100 transition-opacity hover:bg-red-50 hover:border-red-300 z-10 cursor-pointer"
                   aria-label={`Remove from ${c.community_name}`}
                 >
                   <X className="h-2.5 w-2.5 text-gray-600 hover:text-red-600" />
@@ -1053,7 +1052,7 @@ export const createJobsColumnsV4 = ({
       const job = row.original;
 
       return (
-        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+        <div className="flex items-center justify-end gap-1 opacity-60 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
