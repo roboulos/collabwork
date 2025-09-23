@@ -347,18 +347,35 @@ export const createJobsColumnsV4 = ({
         editingCell?.jobId === job.id && editingCell?.field === "title";
       const isSourceDeleted = job.morningbrew?.is_source_deleted;
 
-      const title =
-        job.morningbrew?.formatted_title || job.ai_title || job.title;
-      const company = job.custom_company_name || job.company || "Company";
+      // Use formatted_title directly if available
+      let displayFormula = "";
+      let title = "";
+      let company = "";
+      let remoteStatus = "";
       
-      // Determine remote status
-      let remoteStatus = "On-site";
-      if (job.morningbrew?.custom_is_remote) {
-        remoteStatus = job.morningbrew.custom_is_remote;
-      } else if (job.custom_is_remote) {
-        remoteStatus = job.custom_is_remote;
-      } else if (job.is_remote) {
-        remoteStatus = "Remote";
+      if (job.morningbrew?.formatted_title) {
+        // Use the formatted_title directly - this is what gets updated
+        displayFormula = job.morningbrew.formatted_title;
+        // Still extract parts for other UI elements if needed
+        title = job.ai_title || job.title || "Untitled Position";
+        company = job.custom_company_name || job.company || "Company";
+        remoteStatus = job.morningbrew?.custom_is_remote || (job.is_remote ? "Remote" : "On-site");
+      } else {
+        // Fallback: construct formula if formatted_title not available
+        title = job.ai_title || job.title || "Untitled Position";
+        company = job.custom_company_name || job.company || "Company";
+        
+        // Determine remote status
+        remoteStatus = "On-site";
+        if (job.morningbrew?.custom_is_remote) {
+          remoteStatus = job.morningbrew.custom_is_remote;
+        } else if (job.custom_is_remote) {
+          remoteStatus = job.custom_is_remote;
+        } else if (job.is_remote) {
+          remoteStatus = "Remote";
+        }
+        
+        displayFormula = `${title} - ${company} - ${remoteStatus}`;
       }
 
       return (
@@ -385,7 +402,7 @@ export const createJobsColumnsV4 = ({
                       onClick={(e) => e.stopPropagation()}
                     >
                       <span className="leading-tight">
-                        {title || "Untitled Position"} - {company} - {remoteStatus}
+                        {displayFormula}
                       </span>
                       <ExternalLink className="h-3 w-3 flex-shrink-0" />
                     </a>
@@ -396,7 +413,7 @@ export const createJobsColumnsV4 = ({
                         isSourceDeleted && "line-through decoration-red-400",
                       )}
                     >
-                      {title || "Untitled Position"} - {company} - {remoteStatus}
+                      {displayFormula}
                     </span>
                   )}
                 </div>
@@ -434,9 +451,9 @@ export const createJobsColumnsV4 = ({
                     className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                     onClick={(e) => {
                       e.stopPropagation();
-                      // Pass the full formatted title for editing
-                      const fullFormula = `${title || "Untitled Position"} - ${company} - ${remoteStatus}`;
-                      onStartEdit(job.id, "title", fullFormula);
+                      // Pass the current formatted_title or construct it
+                      const editFormula = job.morningbrew?.formatted_title || displayFormula;
+                      onStartEdit(job.id, "title", editFormula);
                     }}
                     aria-label="Edit title"
                   >
