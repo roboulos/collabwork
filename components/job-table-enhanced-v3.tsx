@@ -64,14 +64,14 @@ function VirtualizedTable({ table, columns }: VirtualizedTableProps) {
   const virtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 72, // Estimated row height
+    estimateSize: () => 52, // Match CSS min-height
     overscan: 5, // Reduced overscan for better performance with huge datasets
     // Enable smooth scroll handling for large datasets
     scrollMargin: 200,
     // Improve measurement caching
     measureElement: typeof window !== 'undefined' && rows.length > 1000 
       ? undefined  // Skip measuring for very large datasets
-      : (element) => element?.getBoundingClientRect().height || 72,
+      : (element) => element?.getBoundingClientRect().height || 52,
   });
 
   const virtualItems = virtualizer.getVirtualItems();
@@ -168,9 +168,15 @@ function VirtualizedTable({ table, columns }: VirtualizedTableProps) {
                 return (
                   <TableRow
                     key={row.id}
+                    ref={(node) => {
+                      if (node && virtualizer.measureElement) {
+                        virtualizer.measureElement(node);
+                      }
+                    }}
                     data-selected={row.getIsSelected()}
                     data-priority={(row.original as JobPosting).morningbrew?.is_priority || false}
                     data-morningbrew={(row.original as JobPosting).is_morningbrew || false}
+                    className="job-row"
                     onClick={(e: React.MouseEvent<HTMLTableRowElement>) => {
                       if (e.detail === 2) return;
                       const target = e.target as HTMLElement;
@@ -183,7 +189,6 @@ function VirtualizedTable({ table, columns }: VirtualizedTableProps) {
                         row.toggleSelected();
                       }
                     }}
-                    className="job-row"
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell 
@@ -1067,7 +1072,7 @@ export function JobTableEnhancedV3() {
             />
 
             <div className={cn(
-              "flex-1 rounded-lg border bg-white dark:bg-gray-950 shadow-sm overflow-hidden relative mt-4",
+              "flex-1 rounded-lg border bg-white dark:bg-gray-950 shadow-sm overflow-hidden relative mt-4 table-container",
               showMorningBrewOnly && "morningbrew-view"
             )}>
               {(isToggling || (loading && jobs.length > 0)) && (

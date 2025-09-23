@@ -163,56 +163,51 @@ const MBStatusBadge = ({ status }: { status?: string }) => {
   > = {
     suggested: {
       label: "Curated",
-      className: "badge-curated",
+      className: "badge badge-curated",
       icon: "sparkles",
     },
     user_added: {
       label: "Added",
-      className: "badge-active",
+      className: "badge badge-active",
       icon: "plus",
     },
     approved: {
       label: "Approved",
-      className: "badge-active",
+      className: "badge badge-active",
     },
     published: {
       label: "Published",
-      className: "badge-active",
+      className: "badge badge-active",
     },
     archived: {
       label: "Archived",
-      className: "bg-gray-500 text-white",
+      className: "badge badge-default",
     },
     deleted: {
       label: "Deleted",
-      className: "bg-red-500 text-white",
+      className: "badge badge-default opacity-50",
     },
     rejected: {
       label: "Rejected",
-      className: "badge-pending",
+      className: "badge badge-pending",
     },
     closed: {
       label: "Closed",
-      className: "bg-gray-500 text-white",
+      className: "badge badge-default",
     },
   };
 
   const config = statusConfig[status] || {
     label: status,
-    className: "bg-gray-100 text-gray-700 border-gray-300",
+    className: "badge badge-default",
   };
 
   return (
-    <Badge
-      className={cn(
-        config.className,
-        "border inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs",
-      )}
-    >
+    <span className={config.className}>
       {status === "suggested" && <Sparkles className="h-3 w-3" />}
       {status === "user_added" && <Plus className="h-3 w-3" />}
       {config.label}
-    </Badge>
+    </span>
   );
 };
 
@@ -272,7 +267,7 @@ export const createJobsColumnsV4 = ({
 
       return (
         <div
-          className={cn("group relative min-h-[48px] py-2", isSourceDeleted && "opacity-60")}
+          className={cn("group relative min-h-[40px]", isSourceDeleted && "opacity-60")}
         >
           {isEditing ? (
             <EditingCell
@@ -357,7 +352,7 @@ export const createJobsColumnsV4 = ({
         job.morningbrew?.formatted_title || job.ai_title || job.title;
 
       return (
-        <div className={cn("space-y-1.5 relative min-h-[48px] py-2", isSourceDeleted && "opacity-60")}>
+        <div className={cn("space-y-1.5 relative min-h-[40px]", isSourceDeleted && "opacity-60")}>
           {isEditing ? (
             <EditingCell
               value={editValue}
@@ -466,7 +461,7 @@ export const createJobsColumnsV4 = ({
         location || job.morningbrew?.cached_location || "Not specified";
 
       return (
-        <div className="group relative min-h-[48px] py-2">
+        <div className="group relative min-h-[40px]">
           {isEditing ? (
             <EditingCell
               value={editValue}
@@ -687,11 +682,12 @@ export const createJobsColumnsV4 = ({
             <Badge
               variant="outline"
               className={cn(
+                "badge", // Use our fixed badge styles
                 displayStatus === "Remote"
-                  ? "border-green-300 text-green-600"
+                  ? "border-green-300 text-green-600 dark:text-green-400 dark:border-green-700"
                   : displayStatus === "Hybrid"
-                    ? "border-blue-300 text-blue-600"
-                    : "border-gray-200 text-gray-400",
+                    ? "border-blue-300 text-blue-600 dark:text-blue-400 dark:border-blue-700"
+                    : "badge-onsite", // Use our custom on-site badge class with proper contrast
               )}
             >
               {displayStatus}
@@ -793,10 +789,10 @@ export const createJobsColumnsV4 = ({
         <div className="text-center">
           <span
             className={cn(
-              "font-semibold text-sm",
+              "font-semibold text-sm salary-value",
               cpc > 0 && isPaidOnCPC
-                ? "text-blue-700 text-base"
-                : "text-gray-400 text-xs",
+                ? "text-base"
+                : "text-gray-400 dark:text-gray-600 text-xs",
             )}
           >
             ${cpc.toFixed(2)}
@@ -823,10 +819,10 @@ export const createJobsColumnsV4 = ({
         <div className="text-center">
           <span
             className={cn(
-              "font-semibold text-sm",
+              "font-semibold text-sm salary-value",
               cpa > 0 && isPaidOnCPA
-                ? "text-green-700 text-base"
-                : "text-gray-400 text-xs",
+                ? "text-base"
+                : "text-gray-400 dark:text-gray-600 text-xs",
             )}
           >
             ${cpa.toFixed(2)}
@@ -984,8 +980,8 @@ export const createJobsColumnsV4 = ({
       return (
         <div className="flex flex-wrap items-center gap-1">
           {job.morningbrew?.is_priority && (
-            <Badge className="badge-priority flex items-center gap-1 px-2 py-0.5">
-              <Star className="priority-star h-3 w-3" />
+            <Badge variant="warning" className="gap-1 px-2 py-0.5 font-semibold text-xs">
+              <Star className="h-3 w-3" />
               Priority
             </Badge>
           )}
@@ -994,15 +990,14 @@ export const createJobsColumnsV4 = ({
               key={c.id}
               className="group/badge relative inline-flex items-center"
             >
-              <Badge
-                variant="outline"
+              <span
                 className={cn(
-                  "text-xs font-medium bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100 transition-colors py-0.5",
-                  onRemoveFromCommunity ? "pr-7" : "px-2",
+                  "badge badge-default",
+                  onRemoveFromCommunity ? "pr-7" : "",
                 )}
               >
                 {c.community_name}
-              </Badge>
+              </span>
               {onRemoveFromCommunity && (
                 <button
                   type="button"
@@ -1065,14 +1060,14 @@ export const createJobsColumnsV4 = ({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0"
+                  className="action-button copy-button h-8 w-8 p-0"
                   onClick={(e) => {
                     e.stopPropagation();
                     onCopyJob(job);
                   }}
                   aria-label="Copy job text for newsletter"
                 >
-                  <Copy className="h-4 w-4 text-gray-600" />
+                  <Copy className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Copy job text for newsletter</TooltipContent>
@@ -1099,8 +1094,8 @@ export const createJobsColumnsV4 = ({
                       <Star
                         className={`h-4 w-4 ${
                           job.morningbrew?.is_priority
-                            ? "fill-yellow-500 text-yellow-500"
-                            : "text-gray-400"
+                            ? "priority-star"
+                            : "text-gray-400 hover:text-gray-600 transition-colors"
                         }`}
                       />
                     </Button>

@@ -1,208 +1,687 @@
-/* CollabWork Table Design System */
-/* Clear visual hierarchy for job states and views */
+/* CollabWork Premium Design System */
+/* Sophisticated Enterprise-Grade UI with Refined Visual Hierarchy */
 
+/* ============================== */
+/* Light Mode Color Palette */
+/* ============================== */
 :root {
-  /* Light Mode Colors */
-  --row-default: #ffffff;
-  --row-hover: #f8f9fa;
-  --row-selected: #e3f2fd;
-  --row-selected-hover: #bbdefb;
-  --row-priority: #fff8e1;
-  --row-priority-hover: #ffecb3;
-  --row-priority-selected: #ffe082;
+  /* Core Background Colors */
+  --background: #ffffff;
+  --background-subtle: #fafafa;
+  --background-muted: #f5f5f5;
+  --background-hover: #f8f9fa;
+  --background-active: #f0f0f0;
   
-  /* Status Colors */
-  --status-curated: #9c27b0;
-  --status-pending: #ff9800;
-  --status-active: #4caf50;
+  /* Selected States - Subtle Blue Tint */
+  --background-selected: #f0f7ff;
+  --background-selected-hover: #e6f3ff;
+  --background-selected-active: #dbeafe;
   
-  /* Brand Colors */
-  --morningbrew-accent: #f59e0b;
-  --ashley-accent: #3b82f6;
-  
-  /* Borders */
+  /* Border System */
   --border-default: #e5e7eb;
-  --border-selected: #2196f3;
-  --border-priority: #f59e0b;
+  --border-subtle: #f0f0f0;
+  --border-selected: #3b82f6;
+  --border-focus: #2563eb;
+  --border-hover: #d1d5db;
+  
+  /* Text Hierarchy */
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --text-tertiary: #9ca3af;
+  --text-muted: #a0a0a0;
+  --text-link: #2563eb;
+  --text-link-hover: #1d4ed8;
+  
+  /* Brand Accents */
+  --accent-ashley: #3b82f6;
+  --accent-ashley-light: #60a5fa;
+  --accent-ashley-dark: #2563eb;
+  --accent-morningbrew: #f59e0b;
+  --accent-morningbrew-light: #fbbf24;
+  --accent-morningbrew-dark: #d97706;
+  
+  /* Status Colors - Refined */
+  --status-success: #047857;
+  --status-success-bg: #ecfdf5;
+  --status-warning: #f59e0b;
+  --status-warning-bg: #fef3c7;
+  --status-error: #ef4444;
+  --status-error-bg: #fee2e2;
+  --status-info: #3b82f6;
+  --status-info-bg: #eff6ff;
+  
+  /* Badge Colors */
+  --badge-curated: #8b5cf6;
+  --badge-curated-bg: #f3e8ff;
+  --badge-priority: #f59e0b;
+  --badge-priority-bg: #fef3c7;
+  --badge-active: #047857;
+  --badge-active-bg: #ecfdf5;
+  --badge-pending: #f59e0b;
+  --badge-pending-bg: #fef3c7;
+  --badge-default: #6b7280;
+  --badge-default-bg: #f3f4f6;
+  
+  /* Shadows for Depth */
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  
+  /* Transition Timing */
+  --transition-fast: 150ms;
+  --transition-base: 200ms;
+  --transition-slow: 300ms;
 }
 
+/* ============================== */
+/* Dark Mode Color Palette */
+/* ============================== */
 .dark {
-  /* Dark Mode Colors */
-  --row-default: #111827;
-  --row-hover: #1f2937;
-  --row-selected: #1e3a5f;
-  --row-selected-hover: #2563eb;
-  --row-priority: #422006;
-  --row-priority-hover: #451a03;
-  --row-priority-selected: #7c2d12;
+  /* Core Background Colors */
+  --background: #0a0a0a;
+  --background-subtle: #141414;
+  --background-muted: #1a1a1a;
+  --background-hover: #1f1f1f;
+  --background-active: #262626;
   
-  /* Status Colors */
-  --status-curated: #e91e63;
-  --status-pending: #ffa726;
-  --status-active: #66bb6a;
+  /* Selected States - Subtle Blue Tint */
+  --background-selected: #1a2332;
+  --background-selected-hover: #1e2a3d;
+  --background-selected-active: #243447;
   
-  /* Brand Colors */
-  --morningbrew-accent: #fbbf24;
-  --ashley-accent: #60a5fa;
-  
-  /* Borders */
-  --border-default: #374151;
+  /* Border System */
+  --border-default: #27272a;
+  --border-subtle: #1a1a1a;
   --border-selected: #60a5fa;
-  --border-priority: #fbbf24;
+  --border-focus: #3b82f6;
+  --border-hover: #3f3f46;
+  
+  /* Text Hierarchy - Improved contrast for dark mode */
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db; /* Improved from #9ca3af for better contrast */
+  --text-tertiary: #9ca3af; /* Improved from #6b7280 */
+  --text-muted: #6b7280; /* Improved from #525252 */
+  --text-link: #60a5fa;
+  --text-link-hover: #93bbfc;
+  
+  /* Brand Accents */
+  --accent-ashley: #60a5fa;
+  --accent-ashley-light: #93bbfc;
+  --accent-ashley-dark: #3b82f6;
+  --accent-morningbrew: #fbbf24;
+  --accent-morningbrew-light: #fcd34d;
+  --accent-morningbrew-dark: #f59e0b;
+  
+  /* Status Colors - Refined with better contrast */
+  --status-success: #4ade80; /* Better contrast green for dark mode */
+  --status-success-bg: #064e3b;
+  --status-warning: #fbbf24;
+  --status-warning-bg: #451a03;
+  --status-error: #f87171;
+  --status-error-bg: #450a0a;
+  --status-info: #60a5fa;
+  --status-info-bg: #172554;
+  
+  /* Badge Colors */
+  --badge-curated: #a78bfa;
+  --badge-curated-bg: #2e1065;
+  --badge-priority: #fbbf24;
+  --badge-priority-bg: #451a03;
+  --badge-active: #4ade80;
+  --badge-active-bg: #064e3b;
+  --badge-pending: #fbbf24;
+  --badge-pending-bg: #451a03;
+  --badge-default: #9ca3af;
+  --badge-default-bg: #1f2937;
+  
+  /* Shadows for Depth */
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.2);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
 }
 
-/* Row States */
+/* ============================== */
+/* Row State System - Fixed (No Layout Shift) */
+/* ============================== */
+
+/* Base row styling - NO LAYOUT-AFFECTING PROPERTIES */
 .job-row {
-  transition: all 0.15s ease;
-  border-left: 3px solid transparent;
+  background: var(--background);
+  /* NO border-left that causes layout shift */
+  transition: none !important;
+  position: relative;
+  cursor: pointer;
+  /* FIXED HEIGHT with flexibility for content */
+  min-height: 52px;
+  height: auto; /* Allow height to expand if needed */
 }
 
+/* Hover state - ONLY background color */
 .job-row:hover {
-  background-color: var(--row-hover);
+  background: var(--background-hover);
 }
 
-/* Selected State */
+/* Selected state - Using box-shadow instead of border */
 .job-row[data-selected="true"] {
-  background-color: var(--row-selected) !important;
-  border-left-color: var(--border-selected);
+  background: var(--background-selected) !important;
+  /* Inset box-shadow doesn't affect layout */
+  box-shadow: inset 3px 0 0 var(--border-selected);
+  /* Outline for additional visibility without layout shift */
+  outline: 1px solid var(--border-selected);
+  outline-offset: -1px; /* Keep outline inside the element */
 }
 
 .job-row[data-selected="true"]:hover {
-  background-color: var(--row-selected-hover) !important;
+  background: var(--background-selected-hover) !important;
 }
 
-/* Priority/Starred State */
+/* Remove aggressive blue background in dark mode */
+.dark .job-row[data-selected="true"] {
+  background: #1e293b !important; /* Much subtler selected background */
+}
+
+/* Priority indicator - Using box-shadow layers */
 .job-row[data-priority="true"] {
-  background-color: var(--row-priority);
-  border-left-color: var(--border-priority);
+  background: var(--background); /* Keep normal background */
+  position: relative;
+  /* Layer box-shadow for priority accent */
+  box-shadow: inset 3px 0 0 var(--accent-morningbrew);
 }
 
-.job-row[data-priority="true"]:hover {
-  background-color: var(--row-priority-hover);
-}
-
-/* Selected + Priority */
+/* Priority + Selected state - Combine box-shadows */
 .job-row[data-selected="true"][data-priority="true"] {
-  background-color: var(--row-priority-selected) !important;
-  border-left-color: var(--border-priority);
-  box-shadow: inset 0 0 0 1px var(--border-selected);
+  background: var(--background-selected) !important;
+  /* Combine priority and selected indicators */
+  box-shadow: 
+    inset 3px 0 0 var(--accent-morningbrew),
+    inset 0 0 0 1px var(--accent-morningbrew);
+  outline: 1px solid var(--accent-morningbrew);
+  outline-offset: -1px;
 }
 
-/* MorningBrew View Indicator */
-.morningbrew-view .job-row[data-morningbrew="true"] {
+/* MorningBrew View - Subtle distinction without amber backgrounds */
+.morningbrew-view {
   position: relative;
 }
 
-.morningbrew-view .job-row[data-morningbrew="true"]::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: var(--morningbrew-accent);
+/* MorningBrew container has subtle top accent */
+.morningbrew-view .table-container {
+  border-top: 2px solid var(--accent-morningbrew);
+  background: var(--background-subtle);
 }
 
-/* Status Badges */
-.badge-curated {
-  background-color: var(--status-curated) !important;
-  color: white !important;
+/* MorningBrew rows - NO amber backgrounds, use box-shadow indicator */
+.morningbrew-view .job-row[data-morningbrew="true"] {
+  background: var(--background); /* Keep normal background */
+  position: relative;
+  /* Add subtle left accent using box-shadow instead of pseudo-element */
+  box-shadow: inset 2px 0 0 var(--accent-morningbrew);
+}
+
+/* ============================== */
+/* Badge System - Refined */
+/* ============================== */
+
+/* Base badge styling */
+.badge {
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 11px;
   font-weight: 600;
-  border: none !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all var(--transition-fast) ease;
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.badge-pending {
-  background-color: var(--status-pending) !important;
-  color: white !important;
-  border: none !important;
-}
-
-.badge-active {
-  background-color: var(--status-active) !important;
-  color: white !important;
-  border: none !important;
+/* Badge variants with subtle backgrounds */
+.badge-curated {
+  background: var(--badge-curated-bg);
+  color: var(--badge-curated);
+  border-color: var(--badge-curated);
+  border-opacity: 0.2;
 }
 
 .badge-priority {
-  background-color: var(--morningbrew-accent) !important;
-  color: white !important;
-  font-weight: 600;
-  border: none !important;
+  background: var(--badge-priority-bg);
+  color: var(--badge-priority);
+  border-color: var(--badge-priority);
+  border-opacity: 0.2;
+  position: relative;
 }
 
-/* Priority Star Icon */
-.priority-star {
-  color: var(--morningbrew-accent);
-  fill: var(--morningbrew-accent);
+/* Priority badge glow effect */
+.badge-priority::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: var(--badge-priority);
+  opacity: 0.15;
+  border-radius: 12px;
+  filter: blur(4px);
 }
 
-/* Checkbox Styling */
-.job-row input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-  accent-color: var(--ashley-accent);
+.badge-active {
+  background: var(--badge-active-bg);
+  color: var(--badge-active);
+  border-color: var(--badge-active);
+  border-opacity: 0.2;
 }
 
-.job-row[data-selected="true"] input[type="checkbox"] {
-  accent-color: var(--border-selected);
+.badge-pending {
+  background: var(--badge-pending-bg);
+  color: var(--badge-pending);
+  border-color: var(--badge-pending);
+  border-opacity: 0.2;
 }
 
-/* View Toggle Indicator */
-.view-indicator {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.875rem;
-  font-weight: 600;
+.badge-default {
+  background: var(--badge-default-bg);
+  color: var(--badge-default);
+  border-color: var(--border-default);
 }
 
-.view-indicator.ashley-view {
-  background-color: var(--ashley-accent);
-  color: white;
+/* On-site badge with proper contrast */
+.badge-onsite {
+  background: #e5e7eb;
+  color: #374151;
+  border: 1px solid #d1d5db;
 }
 
-.view-indicator.morningbrew-view {
-  background-color: var(--morningbrew-accent);
-  color: white;
+.dark .badge-onsite {
+  background: #1f2937; /* Darker background for better contrast */
+  color: #f8fafc; /* Much lighter text for WCAG AA compliance */
+  border: 1px solid #4b5563;
 }
 
-/* Clear Visual Feedback */
-.selection-count {
-  background: var(--ashley-accent);
-  color: white;
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-weight: 600;
-  font-size: 0.875rem;
+/* Badge hover states */
+.badge:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
 }
 
-/* Table Header */
-.table-header {
-  background-color: var(--row-hover);
+/* ============================== */
+/* Typography Hierarchy */
+/* ============================== */
+
+/* Column headers - Fixed alignment */
+.table-header th {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-tertiary);
+  background: var(--background-subtle);
   border-bottom: 2px solid var(--border-default);
-  font-weight: 600;
+  padding: 12px 16px;
+  vertical-align: middle;
 }
 
-/* Action Buttons */
+/* Fix sort arrow alignment */
+.table-header th svg {
+  vertical-align: middle;
+  margin-top: -2px; /* Compensate for the 2px misalignment */
+}
+
+/* Primary content - job titles */
+.job-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-link);
+  text-decoration: none;
+  transition: color var(--transition-fast) ease;
+}
+
+.job-title:hover {
+  color: var(--text-link-hover);
+  text-decoration: underline;
+}
+
+/* Secondary content - company names */
+.job-company {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+/* Tertiary content - metadata */
+.job-meta {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* ============================== */
+/* Interactive Elements */
+/* ============================== */
+
+/* Refined checkbox styling - Fixed alignment */
+input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border-default);
+  border-radius: 4px;
+  background: var(--background);
+  cursor: pointer;
+  transition: all var(--transition-fast) ease;
+  position: relative;
+  flex-shrink: 0; /* Prevent checkbox from shrinking */
+  vertical-align: middle;
+}
+
+input[type="checkbox"]:hover {
+  border-color: var(--accent-ashley);
+  /* Removed transform to prevent alignment issues */
+}
+
+input[type="checkbox"]:checked {
+  background: var(--accent-ashley);
+  border-color: var(--accent-ashley);
+}
+
+input[type="checkbox"]:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+/* Action buttons */
 .action-button {
-  transition: all 0.15s ease;
-  opacity: 0.8;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all var(--transition-fast) ease;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
 }
 
 .action-button:hover {
-  opacity: 1;
-  transform: scale(1.1);
+  background: var(--background-hover);
+  border-color: var(--border-default);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
 }
 
-/* Copy Button */
+.action-button:active {
+  transform: scale(0.98);
+}
+
+/* Copy button animation */
+.copy-button {
+  transition: all var(--transition-fast) ease;
+}
+
 .copy-button:active {
-  transform: scale(0.95);
+  transform: scale(0.9);
+  color: var(--status-success);
 }
 
-/* Remove confusing amber background */
-.bg-amber-50\/30 {
+/* ============================== */
+/* View Toggle Switch - Fixed with visible slider */
+/* ============================== */
+
+.view-toggle {
+  position: relative;
+  width: 56px !important;
+  height: 28px !important;
+  border-radius: 14px;
+  background: var(--background-muted);
+  border: 2px solid var(--border-default);
+  cursor: pointer;
+  transition: all var(--transition-slow) cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.06);
+  /* Removed hard-coded margin - use flex gap in parent container instead */
+}
+
+.view-toggle[data-state="checked"] {
+  background: var(--accent-morningbrew);
+  border-color: var(--accent-morningbrew);
+  box-shadow: 0 0 12px 0 rgba(245, 158, 11, 0.3);
+}
+
+/* Removed pseudo-element thumb - now handled by React component */
+
+/* Custom thumb styling via thumbClassName prop */
+.view-toggle-thumb {
+  width: 20px !important;
+  height: 20px !important;
+  border-radius: 50%;
+  background: white !important;
+  box-shadow: var(--shadow-sm);
+  /* Adjust positioning and transform for larger switch */
+}
+
+/* Override Radix default transform for checked state */
+.view-toggle .view-toggle-thumb[data-state="checked"] {
+  transform: translateX(28px) !important;
+}
+
+/* View indicators */
+.view-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all var(--transition-fast) ease;
+}
+
+.view-indicator.ashley-view {
+  background: var(--accent-ashley);
+  color: white;
+  box-shadow: 0 0 12px 0 rgba(59, 130, 246, 0.3);
+}
+
+.view-indicator.morningbrew-view {
+  background: var(--accent-morningbrew);
+  color: white;
+  box-shadow: 0 0 12px 0 rgba(245, 158, 11, 0.3);
+}
+
+/* ============================== */
+/* Selection Counter */
+/* ============================== */
+
+.selection-count {
+  background: var(--accent-ashley);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 0 12px 0 rgba(59, 130, 246, 0.3);
+}
+
+/* ============================== */
+/* Priority Star Icon - Refined */
+/* ============================== */
+
+.priority-star {
+  color: var(--accent-morningbrew);
+  fill: var(--accent-morningbrew);
+  filter: drop-shadow(0 0 3px rgba(245, 158, 11, 0.4));
+  transition: all var(--transition-fast) ease;
+}
+
+.priority-star:hover {
+  transform: scale(1.2) rotate(72deg);
+  filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.6));
+}
+
+/* ============================== */
+/* Table Header - Premium */
+/* ============================== */
+
+.table-header {
+  background: linear-gradient(180deg, var(--background-subtle), var(--background));
+  border-bottom: 1px solid var(--border-default);
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* ============================== */
+/* Loading States */
+/* ============================== */
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.loading-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--background) 25%,
+    var(--background-hover) 50%,
+    var(--background) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* ============================== */
+/* Micro-interactions */
+/* ============================== */
+
+/* Smooth focus transitions */
+*:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+  transition: outline-offset var(--transition-fast) ease;
+}
+
+/* Ripple effect for clicks */
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--accent-ashley);
+  transform: scale(0);
+  animation: ripple 0.6s ease-out;
+}
+
+/* ============================== */
+/* Remove Legacy Styles */
+/* ============================== */
+
+/* Remove all aggressive amber/yellow backgrounds */
+.bg-amber-50\/30,
+.bg-yellow-50,
+.bg-amber-100,
+.bg-yellow-100 {
   background-color: transparent !important;
+}
+
+/* Financial data colors - Softer green */
+.salary-value,
+.text-green-600,
+.text-green-700 {
+  color: #047857 !important; /* Light mode green with better contrast */
+  font-weight: 600;
+}
+
+.dark .salary-value,
+.dark .text-green-600,
+.dark .text-green-700 {
+  color: #4ade80 !important; /* Better contrast green in dark mode */
+  font-weight: 600;
+}
+
+/* Improved muted text contrast in dark mode */
+.dark .text-muted-foreground {
+  color: #cbd5e1 !important; /* Better contrast for muted text in dark mode */
+}
+
+/* Modal dialog fixes */
+.dialog-content input:focus {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+.dialog-content button {
+  min-height: 36px; /* Consistent button height */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Override any inline amber backgrounds */
+[style*="background-color: rgb(255, 248, 225)"],
+[style*="background-color: #fff8e1"],
+[style*="background-color: rgb(255, 236, 179)"],
+[style*="background-color: #ffecb3"] {
+  background-color: var(--background) !important;
+}
+
+/* ============================== */
+/* Accessibility Enhancements */
+/* ============================== */
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --border-default: #000000;
+    --text-primary: #000000;
+    --text-secondary: #333333;
+  }
+  
+  .dark {
+    --border-default: #ffffff;
+    --text-primary: #ffffff;
+    --text-secondary: #cccccc;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================== */
+/* Print Styles */
+/* ============================== */
+
+@media print {
+  .job-row {
+    border-left: 1px solid #000 !important;
+    page-break-inside: avoid;
+  }
+  
+  .badge {
+    border: 1px solid #000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 }

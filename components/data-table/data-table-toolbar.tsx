@@ -9,7 +9,6 @@ import { DataTableViewOptions } from "./data-table-view-options"
 import { DataTableFacetedFilter } from "./data-table-faceted-filter"
 import { Plus, Coffee } from 'lucide-react'
 import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
 
 interface Props<TData> {
   table: Table<TData>
@@ -95,16 +94,18 @@ export function DataTableToolbar<TData>({
           )}
         </div>
         <div className="flex items-center space-x-4">
-          {totalItems && (
-            <span className="text-sm text-muted-foreground">
-              {totalItems > 1000000 ? "2.7M+" : totalItems.toLocaleString()} total records
+          {/* Record count display */}
+          {totalItems !== undefined && (
+            <span className="text-sm text-muted-foreground flex-shrink-0 min-w-[100px]">
+              {new Intl.NumberFormat().format(totalItems)} records
             </span>
           )}
+          
           {onToggleMorningBrewView && (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-shrink-0">
               {!showMorningBrewOnly && (
                 <span className="view-indicator ashley-view">
-                  <Coffee className="h-4 w-4 mr-1 inline" />
+                  <Coffee className="h-4 w-4" />
                   Ashley View
                 </span>
               )}
@@ -112,11 +113,13 @@ export function DataTableToolbar<TData>({
                 id="mb-view"
                 checked={showMorningBrewOnly}
                 onCheckedChange={onToggleMorningBrewView}
-                className="data-[state=checked]:bg-amber-500"
+                className="view-toggle"
+                thumbClassName="view-toggle-thumb"
+                data-state={showMorningBrewOnly ? "checked" : "unchecked"}
               />
               {showMorningBrewOnly && (
                 <span className="view-indicator morningbrew-view">
-                  <Coffee className="h-4 w-4 mr-1 inline" />
+                  <Coffee className="h-4 w-4" />
                   MorningBrew View
                 </span>
               )}
