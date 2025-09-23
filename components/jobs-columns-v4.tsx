@@ -282,8 +282,8 @@ export const createJobsColumnsV4 = ({
                 <span className="font-semibold text-sm text-gray-900 dark:text-gray-100 leading-tight block">
                   {company || "Unknown Company"}
                 </span>
-                {job.morningbrew?.cached_company &&
-                  job.morningbrew.cached_company !== company && (
+                {job.custom_company_name && job.company && 
+                  job.custom_company_name !== job.company && (
                     <span className="text-xs text-muted-foreground/70 italic block mt-0.5">
                       was: {job.company}
                     </span>
@@ -355,35 +355,28 @@ export const createJobsColumnsV4 = ({
       const isSourceDeleted = job.morningbrew?.is_source_deleted;
 
       // Use formatted_title directly if available
-      let displayFormula = "";
-      let title = "";
-      let company = "";
-      let remoteStatus = "";
+      // Always calculate what the frontend would generate
+      const title = job.title || "Untitled Position";  // Use job.title, NOT ai_title
+      const company = job.custom_company_name || job.company || "Company";
       
-      if (job.morningbrew?.formatted_title) {
-        // Use the formatted_title directly - this is what gets updated
-        displayFormula = job.morningbrew.formatted_title;
-        // Still extract parts for other UI elements if needed
-        title = job.title || "Untitled Position";  // Use job.title, NOT ai_title
-        company = job.custom_company_name || job.company || "Company";
-        remoteStatus = job.morningbrew?.custom_is_remote || (job.is_remote ? "Remote" : "On-site");
-      } else {
-        // Fallback: construct formula if formatted_title not available
-        title = job.title || "Untitled Position";  // Use job.title, NOT ai_title
-        company = job.custom_company_name || job.company || "Company";
-        
-        // Determine remote status
-        remoteStatus = "On-site";
-        if (job.morningbrew?.custom_is_remote) {
-          remoteStatus = job.morningbrew.custom_is_remote;
-        } else if (job.custom_is_remote) {
-          remoteStatus = job.custom_is_remote;
-        } else if (job.is_remote) {
-          remoteStatus = "Remote";
-        }
-        
-        displayFormula = `${title} at ${company} (${remoteStatus})`;
+      // Determine remote status
+      let remoteStatus = "On-site";
+      if (job.morningbrew?.custom_is_remote) {
+        remoteStatus = job.morningbrew.custom_is_remote;
+      } else if (job.custom_is_remote) {
+        remoteStatus = job.custom_is_remote;
+      } else if (job.is_remote) {
+        remoteStatus = "Remote";
       }
+      
+      const frontendGeneratedFormula = `${title} at ${company} (${remoteStatus})`;
+      
+      // If we have a formatted_title, use it. Otherwise use the frontend-generated formula
+      const displayFormula = job.morningbrew?.formatted_title || frontendGeneratedFormula;
+      
+      // Show "was" only if formatted_title exists and is different from what frontend would generate
+      const showWas = job.morningbrew?.formatted_title && 
+                      job.morningbrew.formatted_title !== frontendGeneratedFormula;
 
       return (
         <div className={cn("space-y-1.5 relative min-h-[40px]", isSourceDeleted && "opacity-60")}>
@@ -424,12 +417,11 @@ export const createJobsColumnsV4 = ({
                     </span>
                   )}
                 </div>
-                {job.morningbrew?.formatted_title &&
-                  job.morningbrew.formatted_title !== job.title && (
-                    <span className="text-xs text-muted-foreground/70 italic">
-                      was: {job.title}
-                    </span>
-                  )}
+                {showWas && (
+                  <span className="text-xs text-muted-foreground/70 italic block mt-0.5">
+                    was: {frontendGeneratedFormula}
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-1">
                 <TooltipProvider>
