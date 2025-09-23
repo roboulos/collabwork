@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from "next-themes";
+import Image from 'next/image';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -76,10 +77,21 @@ const AdminLogin = () => {
           <Card className="mx-auto w-full max-w-[380px] border border-gray-200 dark:border-gray-800 shadow-lg backdrop-blur-sm bg-white/90 dark:bg-gray-900/90">
             <CardHeader className="items-center justify-center">
               <div className="flex flex-col items-center gap-2">
-                <img
+                <Image
                   src="/collabworklogo.svg"
-                  className="h-12 w-auto"
+                  width={240}
+                  height={58}
+                  className="h-12 w-auto dark:hidden"
                   alt="CollabWork"
+                  priority
+                />
+                <Image
+                  src="/collabworklogodark.svg"
+                  width={240}
+                  height={58}
+                  className="h-12 w-auto hidden dark:block"
+                  alt="CollabWork"
+                  priority
                 />
                 <h1 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
                   Admin Login

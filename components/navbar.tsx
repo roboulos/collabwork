@@ -30,7 +30,15 @@ export function Navbar() {
                 alt="CollabWork" 
                 width={240} 
                 height={58}
-                className="h-12 w-auto dark:invert"
+                className="h-12 w-auto dark:hidden"
+                priority
+              />
+              <Image 
+                src="/collabworklogodark.svg" 
+                alt="CollabWork" 
+                width={240} 
+                height={58}
+                className="h-12 w-auto hidden dark:block"
                 priority
               />
             </Link>

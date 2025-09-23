@@ -1,5 +1,30 @@
 # Ashley Feedback Issues Checklist - Critical
 
+## 📊 Latest Progress Summary (9/23 Late Evening)
+
+### Major Accomplishments Today
+1. **Job Formula Sync Issue - FIXED** ✅
+   - Edits now properly sync across all views (ashleyfrontend, brewfrontend, Morning Brew view)
+   - Fixed missing formatted_title in API responses
+   - Both frontends properly display backend-stored values
+
+2. **Job Formula Formatting - COMPLETED** ✅
+   - Changed format to: "Title at Company (Remote Status)"
+   - Matches newsletter copy format exactly
+   - Updated across both frontends
+
+3. **Data Quality Issues - IDENTIFIED & ADDRESSED** ✅
+   - Removed dependency on ai_title field (contains garbage data)
+   - All views now use formatted_title or construct from clean fields
+   - Backend saves formatted_title when jobs are added to Morning Brew
+
+### Remaining Issues
+- **Search Index**: Company field added but rebuild failing due to 2.7M records
+- **Feed Filter**: Performance issues prevent server-side filtering from working
+- **Test Communities**: Still need list from Summer to remove
+
+---
+
 ## 🚨 Critical Context
 - **Two separate frontends:**
   - `/ashleyfrontend` - Admin/curation dashboard (where Ashley curates)  
@@ -374,6 +399,40 @@ filters: {
 - Copy function already used this format (found in handleCopyJobText)
 
 ### Status: ✅ COMPLETE - Frontend formatting updated
+
+### Final Implementation (9/23 late evening)
+- **brewfrontend fix**: Added formatted_title to morningbrew object mapping - pushed to GitHub
+- **Backend fix**: Updated list-all-brands endpoint to include formatted_title in response
+- **Format confirmed**: "Title at Company (Remote Status)" with brackets
+- **Smart feature discovered**: add-job endpoint automatically generates formatted_title when adding to Morning Brew
+
+---
+
+## 10. ✅ COMPLETE - Job Formula Edit Sync Issue Fixed
+
+### Issue (Identified and Resolved 9/23 late evening)
+- When editing Job Formula in admin view, changes saved to backend but didn't show in:
+  - Morning Brew view in ashleyfrontend
+  - Brew frontend curated jobs view
+  - All other views except where it was edited
+
+### Root Cause Identified
+1. **brewfrontend**: Was missing formatted_title in morningbrew object mapping
+2. **ashleyfrontend Morning Brew view**: list-all-brands endpoint wasn't returning formatted_title
+
+### Fixes Applied
+1. **brewfrontend** ✅
+   - Added formatted_title to morningbrew object mapping
+   - Pushed fix to GitHub repository
+   
+2. **Backend** ✅  
+   - Updated list-all-brands endpoint to include formatted_title in enriched response
+   - Used first_notempty to handle null values for older records
+
+### Result
+- Job Formula edits now sync properly across all views
+- Both frontends display the backend-stored formatted_title
+- Null values handled gracefully with frontend fallback
 
 ---
 
