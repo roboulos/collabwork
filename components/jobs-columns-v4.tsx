@@ -343,7 +343,7 @@ export const createJobsColumnsV4 = ({
         remoteStatus = "Remote";
       }
       
-      return `${jobTitle} - ${companyName} - ${remoteStatus}`;
+      return `${jobTitle} - ${companyName} (${remoteStatus})`;
     },
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Job Formula" />
@@ -382,7 +382,7 @@ export const createJobsColumnsV4 = ({
           remoteStatus = "Remote";
         }
         
-        displayFormula = `${title} - ${company} - ${remoteStatus}`;
+        displayFormula = `${title} - ${company} (${remoteStatus})`;
       }
 
       return (
@@ -393,7 +393,7 @@ export const createJobsColumnsV4 = ({
               onChange={setEditValue}
               onSave={onSaveEdit}
               onCancel={onCancelEdit}
-              placeholder="Enter job formula (Title - Company - Remote Status)"
+              placeholder="Enter job formula (Title - Company (Remote Status))"
             />
           ) : (
           <div className="group relative">

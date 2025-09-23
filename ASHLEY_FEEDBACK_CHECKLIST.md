@@ -338,6 +338,43 @@ filters: {
 - Added formatted_title field to UpdateJobPayload TypeScript interface
 - Frontend now syncs formatted_title properly across all views
 
+### Latest Updates (9/23 late evening)
+- **Backend Changes**: User (Robert) is handling backend updates for add-job and bulk-add endpoints
+- **Frontend Display**: Both ashleyfrontend and brewfrontend now properly display formatted_title with fallback
+- **Morning Brew View**: Fixed to always use backend formatted_title when available, falls back to frontend construction for null values
+- **TypeScript Issues**: Fixed missing fields in brewfrontend (formatted_title, custom_employment_type, custom_is_remote)
+- **Data Issue Identified**: ai_title field contains garbage data, being replaced with formatted_title throughout
+- **Division of Labor**: Frontend display logic complete, backend save logic being handled by Robert
+
+---
+
+## 9. 🔴 CRITICAL - Job Formula Formatting with Brackets
+
+### Issue (Identified 9/23 late evening)
+- Job Formula currently shows: "Title - Company - Remote Status"
+- Need to change format to: "Title - Company (Remote Status)" with brackets
+- Newsletter copy function already uses the correct format with brackets
+- Backend will also be updated to match this format
+
+### Current Format
+- **Display**: "MRI Technologist - Radiology at Windham Hospital - On-site"
+- **Desired**: "MRI Technologist - Radiology at Windham Hospital (On-site)"
+
+### Implementation Plan
+1. [x] Update Job Formula display logic in ashleyfrontend ✅
+2. [x] Update Job Formula display logic in brewfrontend ✅
+3. [x] Ensure edit functionality preserves bracket format ✅
+4. [ ] Test consistency across all views
+
+### Changes Applied
+- Updated `jobs-columns-v4.tsx` in ashleyfrontend to use `(${remoteStatus})` format
+- Updated `jobs-data-table.tsx` in brewfrontend to use same bracket format
+- Updated placeholder text to show example with brackets
+- Both accessorFn and cell display now use consistent bracket format
+- Copy function already used this format (found in handleCopyJobText)
+
+### Status: ✅ COMPLETE - Frontend formatting updated
+
 ---
 
 ## Progress Tracking
