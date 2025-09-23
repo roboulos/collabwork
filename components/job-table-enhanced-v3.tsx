@@ -474,12 +474,14 @@ export function JobTableEnhancedV3() {
         console.log(`Fetching ${pageSize} records from API...`);
         const startTime = Date.now();
         
+        console.log("Calling listJobs with search:", debouncedSearch);
         const response = await xanoService.listJobs(
           currentPage,
           pageSize,
           debouncedSearch,
           {} // TODO: Convert columnFilters to proper format
         );
+        console.log("Search response:", response);
         
         const loadTime = Date.now() - startTime;
         console.log(`API Response - page: ${currentPage}, pageSize: ${pageSize}`);

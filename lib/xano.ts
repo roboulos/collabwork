@@ -120,12 +120,15 @@ class XanoService {
   }
 
   async listJobs(page: number = 1, per_page: number = 50, search?: string, filters?: Record<string, unknown>) {
-    const response = await this.axiosInstance.post('/api:microapp/ashley/list-jobs', {
+    const payload = {
       page: page,
       per_page: per_page,
       search: search || '',
       filters: filters || {}
-    });
+    };
+    console.log('XanoService.listJobs - Sending payload:', payload);
+    const response = await this.axiosInstance.post('/api:microapp/ashley/list-jobs', payload);
+    console.log('XanoService.listJobs - Response received, items:', response.data.items?.length || response.data.length);
     return response.data;
   }
 
