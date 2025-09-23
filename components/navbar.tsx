@@ -25,22 +25,22 @@ export function Navbar() {
           {/* Logo */}
           <div className="mr-12 flex items-center">
             <Link href="/" className="flex items-center space-x-2">
-              <Image 
-                src="/collabworklogo.svg" 
-                alt="CollabWork" 
-                width={240} 
-                height={58}
-                className="h-12 w-auto dark:hidden"
-                priority
-              />
-              <Image 
-                src="/collabworklogodark.svg" 
-                alt="CollabWork" 
-                width={240} 
-                height={58}
-                className="h-12 w-auto hidden dark:block"
-                priority
-              />
+              <div className="relative h-12 w-[200px]">
+                <Image 
+                  src="/collabworklogo.svg" 
+                  alt="CollabWork" 
+                  fill
+                  className="object-contain object-left dark:hidden"
+                  priority
+                />
+                <Image 
+                  src="/collabworklogodark.svg" 
+                  alt="CollabWork" 
+                  fill
+                  className="object-contain object-left hidden dark:block"
+                  priority
+                />
+              </div>
             </Link>
           </div>
 

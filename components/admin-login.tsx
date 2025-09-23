@@ -77,22 +77,22 @@ const AdminLogin = () => {
           <Card className="mx-auto w-full max-w-[380px] border border-gray-200 dark:border-gray-800 shadow-lg backdrop-blur-sm bg-white/90 dark:bg-gray-900/90">
             <CardHeader className="items-center justify-center">
               <div className="flex flex-col items-center gap-2">
-                <Image
-                  src="/collabworklogo.svg"
-                  width={240}
-                  height={58}
-                  className="h-12 w-auto dark:hidden"
-                  alt="CollabWork"
-                  priority
-                />
-                <Image
-                  src="/collabworklogodark.svg"
-                  width={240}
-                  height={58}
-                  className="h-12 w-auto hidden dark:block"
-                  alt="CollabWork"
-                  priority
-                />
+                <div className="relative h-12 w-[200px]">
+                  <Image
+                    src="/collabworklogo.svg"
+                    alt="CollabWork"
+                    fill
+                    className="object-contain object-center dark:hidden"
+                    priority
+                  />
+                  <Image
+                    src="/collabworklogodark.svg"
+                    alt="CollabWork"
+                    fill
+                    className="object-contain object-center hidden dark:block"
+                    priority
+                  />
+                </div>
                 <h1 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
                   Admin Login
                 </h1>
