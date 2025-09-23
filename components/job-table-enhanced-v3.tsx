@@ -19,12 +19,12 @@ import {
   Table as TanstackTable,
 } from "@tanstack/react-table";
 import { Loader2 } from "lucide-react";
+import { LoadingOverlay } from "./ui/loading-overlay";
 
 import { DataTablePagination } from "./data-table/data-table-pagination";
 import { DataTableToolbar } from "./data-table/data-table-toolbar";
 import { createJobsColumnsV4 } from "./jobs-columns-v4";
 import { Button } from "./ui/button";
-import { Card } from "./ui/card";
 import { Checkbox } from "./ui/checkbox";
 import {
   Dialog,
@@ -33,7 +33,6 @@ import {
   DialogTitle,
   DialogFooter,
 } from "./ui/dialog";
-import { TableSkeleton } from "./ui/skeleton";
 import {
   TableBody,
   TableCell,
@@ -574,9 +573,22 @@ export function JobTableEnhancedV3() {
     } catch (error) {
       console.error("Error toggling priority:", error);
       setToast({ message: "Failed to update priority", type: "error" });
-      await loadJobs();
+      // Revert the optimistic update on error
+      setJobs((prevJobs) =>
+        prevJobs.map((job) => {
+          if (job.id === jobId) {
+            return {
+              ...job,
+              morningbrew: job.morningbrew
+                ? { ...job.morningbrew, is_priority: currentPriority }
+                : undefined,
+            };
+          }
+          return job;
+        }),
+      );
     }
-  }, [loadJobs]);
+  }, []);
 
   const handleRemoveFromMorningBrew = React.useCallback(async (jobId: number) => {
     // Optimistic update
@@ -594,9 +606,17 @@ export function JobTableEnhancedV3() {
     } catch (error) {
       console.error("Error removing job from MorningBrew:", error);
       setToast({ message: "Failed to remove job", type: "error" });
-      await loadJobs();
+      // Revert the optimistic update on error
+      const originalJob = jobs.find(j => j.id === jobId);
+      if (originalJob) {
+        setJobs((prevJobs) =>
+          prevJobs.map((job) =>
+            job.id === jobId ? originalJob : job
+          ),
+        );
+      }
     }
-  }, [loadJobs]);
+  }, [jobs]);
 
   const handleRemoveFromCommunity = React.useCallback(async (
     jobId: number,
@@ -646,9 +666,16 @@ export function JobTableEnhancedV3() {
       console.error("API ERROR:", error);
       setToast({ message: "Failed to remove from community", type: "error" });
       // Revert the optimistic update on error
-      await loadJobs();
+      const originalJob = jobs.find(j => j.id === jobId);
+      if (originalJob) {
+        setJobs((prevJobs) =>
+          prevJobs.map((job) =>
+            job.id === jobId ? originalJob : job
+          ),
+        );
+      }
     }
-  }, [jobs, loadJobs]);
+  }, [jobs]);
 
   const handleStartEdit = React.useCallback(
     (jobId: number, field: string, currentValue: string) => {
@@ -764,9 +791,8 @@ export function JobTableEnhancedV3() {
       }
 
       setToast({ message: "Job updated successfully", type: "success" });
-      // RELOAD JOBS TO GET FRESH DATA AFTER UPDATE
-      console.log("Reloading jobs after update...");
-      await loadJobs();
+      // Don't reload all data - the local state update above is sufficient
+      console.log("Job updated locally without full reload");
     } catch (error) {
       console.error("Error updating job:", error);
       const axiosError = error as {
@@ -776,12 +802,13 @@ export function JobTableEnhancedV3() {
       const errorMessage =
         axiosError.response?.data?.message || "Failed to update job";
       setToast({ message: errorMessage, type: "error" });
-      await loadJobs();
+      // On error, revert the local state back
+      setJobs(jobs);
     } finally {
       setEditingCell(null);
       setEditValue("");
     }
-  }, [editingCell, editValue, jobs, loadJobs]);
+  }, [editingCell, editValue, jobs]);
 
   const handleCancelEdit = React.useCallback(() => {
     setEditingCell(null);
@@ -959,19 +986,15 @@ export function JobTableEnhancedV3() {
     getFacetedUniqueValues: getFacetedUniqueValues(),
   });
 
-  if (loading) {
+  // Show full-page loading on initial load
+  if (loading && jobs.length === 0) {
     return (
-      <Card className="shadow-sm border-border/60">
-        <div className="p-4">
-          <div className="mb-4 animate-fade-in">
-            <h2 className="text-2xl font-bold tracking-tight">Job Postings</h2>
-            <p className="text-muted-foreground">
-              Manage and curate job listings for MorningBrew newsletters
-            </p>
-          </div>
-          <TableSkeleton rows={8} />
-        </div>
-      </Card>
+      <div className="relative h-screen">
+        <LoadingOverlay 
+          type="loading" 
+          message="Loading job listings..."
+        />
+      </div>
     );
   }
 
@@ -1032,10 +1055,19 @@ export function JobTableEnhancedV3() {
             />
 
             <div className="flex-1 rounded-lg border bg-white dark:bg-gray-950 shadow-sm overflow-hidden relative mt-4">
-              {(isToggling || loading) && (
-                <div className="absolute inset-0 bg-white/80 dark:bg-gray-900/80 z-50 flex items-center justify-center backdrop-blur-sm">
-                  <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-                </div>
+              {(isToggling || (loading && jobs.length > 0)) && (
+                <LoadingOverlay 
+                  type={isToggling ? "toggle" : debouncedSearch ? "search" : "loading"}
+                  message={
+                    isToggling 
+                      ? showMorningBrewOnly 
+                        ? "Switching to all jobs..." 
+                        : "Loading Morning Brew jobs..."
+                      : debouncedSearch 
+                        ? `Searching for "${debouncedSearch}"...`
+                        : undefined
+                  }
+                />
               )}
               <VirtualizedTable table={table} columns={columns} />
             </div>
