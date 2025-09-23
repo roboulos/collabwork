@@ -16,6 +16,7 @@ interface Props<TData> {
   filterColumn?: string
   searchValue?: string
   onSearchChange?: (value: string) => void
+  onSearchSubmit?: (value: string) => void
   brandOptions?: Array<{ value: string; label: string }>
   feedOptions?: Array<{ value: string; label: string }>
   showMorningBrewOnly?: boolean
@@ -29,6 +30,7 @@ export function DataTableToolbar<TData>({
   filterColumn = "title",
   searchValue,
   onSearchChange,
+  onSearchSubmit,
   brandOptions = [],
   feedOptions = [],
   showMorningBrewOnly = false,
@@ -42,13 +44,26 @@ export function DataTableToolbar<TData>({
       <div className="flex items-center justify-between">
         <div className="flex flex-1 flex-col gap-4 sm:flex-row sm:items-center sm:gap-2">
           <Input
-            placeholder="Search positions..."
+            placeholder="Search positions... (Press Enter)"
             value={searchValue ?? (table.getColumn(filterColumn)?.getFilterValue() as string) ?? ""}
             onChange={(event) => {
+              // Update the input value without triggering search
               if (onSearchChange) {
                 onSearchChange(event.target.value);
               } else {
                 table.getColumn(filterColumn)?.setFilterValue(event.target.value);
+              }
+            }}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                // Trigger the actual search on Enter
+                if (onSearchSubmit) {
+                  onSearchSubmit(event.currentTarget.value);
+                } else if (onSearchChange) {
+                  // Fallback for compatibility
+                  onSearchChange(event.currentTarget.value);
+                }
               }
             }}
             className="h-10 w-full sm:w-[150px] lg:w-[250px]"

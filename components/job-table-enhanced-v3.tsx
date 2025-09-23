@@ -300,15 +300,11 @@ export function JobTableEnhancedV3() {
     loadCommunities();
   }, []);
 
-  // Debounce search input
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-      setCurrentPage(1); // Reset to first page on search
-    }, 500);
-    
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
+  // Handle search on Enter key
+  const handleSearch = (value: string) => {
+    setDebouncedSearch(value);
+    setCurrentPage(1); // Reset to first page on search
+  };
 
   useEffect(() => {
     if (!isToggling) {
@@ -1001,6 +997,7 @@ export function JobTableEnhancedV3() {
               filterColumn="job_formula"
               searchValue={searchQuery}
               onSearchChange={setSearchQuery}
+              onSearchSubmit={handleSearch}
               brandOptions={communities.map((c) => ({
                 value: c.id.toString(),
                 label: c.community_name,
