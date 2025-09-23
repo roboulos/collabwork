@@ -369,7 +369,7 @@ export const createJobsColumnsV4 = ({
               onChange={setEditValue}
               onSave={onSaveEdit}
               onCancel={onCancelEdit}
-              placeholder="Enter job title"
+              placeholder="Enter job formula (Title - Company - Remote Status)"
             />
           ) : (
           <div className="group relative">
@@ -434,7 +434,9 @@ export const createJobsColumnsV4 = ({
                     className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                     onClick={(e) => {
                       e.stopPropagation();
-                      onStartEdit(job.id, "title", title);
+                      // Pass the full formatted title for editing
+                      const fullFormula = `${title || "Untitled Position"} - ${company} - ${remoteStatus}`;
+                      onStartEdit(job.id, "title", fullFormula);
                     }}
                     aria-label="Edit title"
                   >

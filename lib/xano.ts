@@ -118,6 +118,7 @@ export interface UpdateJobPayload {
   }>;
   custom_employment_type?: string;
   custom_is_remote?: string;
+  formatted_title?: string;
   notes?: string;
 }
 

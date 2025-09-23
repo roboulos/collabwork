@@ -778,13 +778,31 @@ export function JobTableEnhancedV3() {
     );
 
     try {
-      // For title field, use the existing brew/update-details endpoint
+      // For title field, use the ashley/update-job endpoint with formatted_title
       if (editingCell.field === "title") {
-        await xanoService.updateJobField(
-          editingCell.jobId,
-          "formatted_title",
-          editValue,
-        );
+        const updatePayload: UpdateJobPayload = {
+          job_posting_id: editingCell.jobId.toString(),
+          formatted_title: editValue,
+        };
+        const updateResponse = await xanoService.updateJob(updatePayload);
+        
+        // Update the local state with the confirmed formatted_title
+        if (updateResponse.updated_data && updateResponse.updated_data.formatted_title) {
+          setJobs(prevJobs =>
+            prevJobs.map(j => {
+              if (j.id === editingCell.jobId) {
+                return {
+                  ...j,
+                  morningbrew: j.morningbrew ? {
+                    ...j.morningbrew,
+                    formatted_title: updateResponse.updated_data.formatted_title
+                  } : undefined
+                };
+              }
+              return j;
+            })
+          );
+        }
       } else {
         // Check if job has morningbrew record for employment_type and is_remote fields
         if (
