@@ -332,7 +332,17 @@ export const createJobsColumnsV4 = ({
       // Otherwise construct from raw data (NOT ai_title)
       const jobTitle = row.title || "Untitled Position";
       const companyName = row.custom_company_name || row.company || "Company";
-      const remoteStatus = row.is_remote ? "Remote" : "On-site";
+      
+      // Check all possible remote status fields in order of precedence
+      let remoteStatus = "On-site";
+      if (row.morningbrew?.custom_is_remote) {
+        remoteStatus = row.morningbrew.custom_is_remote;
+      } else if (row.custom_is_remote) {
+        remoteStatus = row.custom_is_remote;
+      } else if (row.is_remote) {
+        remoteStatus = "Remote";
+      }
+      
       return `${jobTitle} - ${companyName} - ${remoteStatus}`;
     },
     header: ({ column }) => (
