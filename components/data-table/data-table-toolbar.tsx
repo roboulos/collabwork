@@ -14,20 +14,26 @@ interface Props<TData> {
   table: Table<TData>
   onAddJobs?: () => void
   filterColumn?: string
+  searchValue?: string
+  onSearchChange?: (value: string) => void
   brandOptions?: Array<{ value: string; label: string }>
   feedOptions?: Array<{ value: string; label: string }>
   showMorningBrewOnly?: boolean
   onToggleMorningBrewView?: (value: boolean) => void
+  totalItems?: number
 }
 
 export function DataTableToolbar<TData>({ 
   table, 
   onAddJobs,
   filterColumn = "title",
+  searchValue,
+  onSearchChange,
   brandOptions = [],
   feedOptions = [],
   showMorningBrewOnly = false,
-  onToggleMorningBrewView
+  onToggleMorningBrewView,
+  totalItems
 }: Props<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0
 
@@ -37,10 +43,14 @@ export function DataTableToolbar<TData>({
         <div className="flex flex-1 flex-col gap-4 sm:flex-row sm:items-center sm:gap-2">
           <Input
             placeholder="Search positions..."
-            value={(table.getColumn(filterColumn)?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn(filterColumn)?.setFilterValue(event.target.value)
-            }
+            value={searchValue ?? (table.getColumn(filterColumn)?.getFilterValue() as string) ?? ""}
+            onChange={(event) => {
+              if (onSearchChange) {
+                onSearchChange(event.target.value);
+              } else {
+                table.getColumn(filterColumn)?.setFilterValue(event.target.value);
+              }
+            }}
             className="h-10 w-full sm:w-[150px] lg:w-[250px]"
           />
           {table.getColumn("morningbrew_brands") && brandOptions.length > 0 && (
@@ -69,6 +79,11 @@ export function DataTableToolbar<TData>({
           )}
         </div>
         <div className="flex items-center space-x-4">
+          {totalItems && (
+            <span className="text-sm text-muted-foreground">
+              {totalItems > 1000000 ? "2.7M+" : totalItems.toLocaleString()} total records
+            </span>
+          )}
           {onToggleMorningBrewView && (
             <div className="flex items-center space-x-2">
               <Coffee className="h-4 w-4 text-muted-foreground" />

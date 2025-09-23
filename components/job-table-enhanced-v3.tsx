@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 
 import {
+  ColumnDef,
   ColumnFiltersState,
   SortingState,
   VisibilityState,
@@ -10,11 +12,11 @@ import {
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   getFacetedRowModel,
   getFacetedUniqueValues,
   useReactTable,
+  Table as TanstackTable,
 } from "@tanstack/react-table";
 import { Loader2 } from "lucide-react";
 
@@ -50,6 +52,161 @@ import {
   UpdateJobPayload,
 } from "@/lib/xano";
 
+// Virtualized table component  
+interface VirtualizedTableProps {
+  table: TanstackTable<JobPosting>;
+  columns: ColumnDef<JobPosting>[];
+}
+
+function VirtualizedTable({ table, columns }: VirtualizedTableProps) {
+  const parentRef = useRef<HTMLDivElement>(null);
+  const rows = table.getRowModel().rows;
+
+  const virtualizer = useVirtualizer({
+    count: rows.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 72, // Estimated row height
+    overscan: 5, // Reduced overscan for better performance with huge datasets
+    // Enable smooth scroll handling for large datasets
+    scrollMargin: 200,
+    // Improve measurement caching
+    measureElement: typeof window !== 'undefined' && rows.length > 1000 
+      ? undefined  // Skip measuring for very large datasets
+      : (element) => element?.getBoundingClientRect().height || 72,
+  });
+
+  const virtualItems = virtualizer.getVirtualItems();
+  
+  // Column sizing is available from table state if needed
+  // const columnSizing = table.getState().columnSizing;
+
+  return (
+    <div ref={parentRef} className="h-full overflow-auto relative">
+      <div className="min-w-[2000px]">
+        {/* Sticky header outside the table */}
+        <div className="sticky top-0 z-20 bg-white dark:bg-gray-950">
+          <Table>
+            <TableHeader className="border-b-2 border-gray-200 dark:border-gray-700 shadow-sm">
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <TableHead
+                  key={`${headerGroup.id}_${header.id}`}
+                  colSpan={header.colSpan}
+                  style={{ width: header.getSize() }}
+                  className="relative"
+                >
+                  {header.isPlaceholder ? null : (
+                    <>
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext(),
+                      )}
+                      {header.column.getCanResize() && (
+                        <div
+                          onMouseDown={header.getResizeHandler()}
+                          onTouchStart={header.getResizeHandler()}
+                          className="absolute right-0 top-0 h-full w-1 cursor-col-resize select-none touch-none hover:bg-primary/20 hover:w-2 transition-all"
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      )}
+                    </>
+                  )}
+                </TableHead>
+              ))}
+            </TableRow>
+          ))}
+        </TableHeader>
+          </Table>
+        </div>
+        
+        {/* Table body with virtualization */}
+        <Table className="relative">
+          <TableBody>
+          {rows.length === 0 ? (
+            <TableRow>
+              <TableCell
+                colSpan={columns.length}
+                className="h-24 text-center"
+              >
+                No results.
+              </TableCell>
+            </TableRow>
+          ) : (
+            <>
+              {/* Virtual spacer before - only if we're scrolled down */}
+              {virtualItems.length > 0 && virtualItems[0]?.index > 0 && (
+                <tr>
+                  <td colSpan={columns.length} style={{ height: `${virtualItems[0].start}px` }} />
+                </tr>
+              )}
+              
+              {/* Render visible rows */}
+              {virtualItems.map((virtualItem) => {
+                const row = rows[virtualItem.index];
+                return (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                    onClick={(e: React.MouseEvent<HTMLTableRowElement>) => {
+                      if (e.detail === 2) return;
+                      const target = e.target as HTMLElement;
+                      const isButton = target.closest("button");
+                      const isLink = target.closest("a");
+                      const isCheckbox = target.closest('input[type="checkbox"]');
+                      const isInput = target.closest('input[type="text"]');
+
+                      if (!isButton && !isLink && !isCheckbox && !isInput) {
+                        row.toggleSelected();
+                      }
+                    }}
+                    className={cn(
+                      "group cursor-pointer transition-colors hover:bg-gray-50/50 dark:hover:bg-gray-900/50",
+                      (row.original as JobPosting).is_morningbrew &&
+                        (row.original as JobPosting).morningbrew?.is_priority &&
+                        "bg-amber-50/30 hover:bg-amber-50/50",
+                    )}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell 
+                        key={`${row.id}_${cell.column.id}`}
+                        style={{ 
+                          width: cell.column.getSize(),
+                          minWidth: cell.column.columnDef.minSize,
+                          maxWidth: cell.column.columnDef.maxSize,
+                        }}
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                );
+              })}
+              
+              {/* Virtual spacer after */}
+              {virtualItems.length > 0 && 
+                virtualItems[virtualItems.length - 1]?.index < rows.length - 1 && (
+                <tr>
+                  <td 
+                    colSpan={columns.length} 
+                    style={{ 
+                      height: `${virtualizer.getTotalSize() - (virtualItems[virtualItems.length - 1]?.end || 0)}px` 
+                    }} 
+                  />
+                </tr>
+              )}
+            </>
+          )}
+        </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}
+
 export function JobTableEnhancedV3() {
   const [jobs, setJobs] = useState<JobPosting[]>([]);
   const [communities, setCommunities] = useState<Community[]>([]);
@@ -57,6 +214,14 @@ export function JobTableEnhancedV3() {
   const [rowSelection, setRowSelection] = useState({});
   const [showMorningBrewOnly, setShowMorningBrewOnly] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
+  const loadingRef = useRef(false);
+  
+  // Server-side pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(500); // Increased to test virtualization
+  const [totalItems, setTotalItems] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
     location: true,
     employment_type: true,
@@ -119,6 +284,16 @@ export function JobTableEnhancedV3() {
     loadCommunities();
   }, []);
 
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setCurrentPage(1); // Reset to first page on search
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   useEffect(() => {
     if (!isToggling) {
       loadJobs();
@@ -143,7 +318,7 @@ export function JobTableEnhancedV3() {
         feed_source: true,
       }));
     }
-  }, [showMorningBrewOnly]); // Reload when toggle changes
+  }, [showMorningBrewOnly, currentPage, pageSize, debouncedSearch, isToggling]); // Added isToggling to dependencies
 
   const loadCommunities = async () => {
     try {
@@ -158,7 +333,14 @@ export function JobTableEnhancedV3() {
   };
 
   const loadJobs = async (retryCount = 0) => {
+    // Prevent duplicate calls
+    if (loadingRef.current) {
+      console.log("Already loading, skipping duplicate call");
+      return;
+    }
+    
     try {
+      loadingRef.current = true;
       // Don't set loading if we're toggling views to prevent flash
       if (!isToggling) {
         setLoading(true);
@@ -272,27 +454,55 @@ export function JobTableEnhancedV3() {
         );
         setJobs(transformedJobs);
       } else {
-        // Load all jobs from feeds - DEFAULT VIEW
-        const response = await xanoService.listJobs(0);
+        // Load jobs with pagination - DEFAULT VIEW
+        console.log(`Fetching ${pageSize} records from API...`);
+        const startTime = Date.now();
         
-        console.log("Sample job from API to check morningbrew fields:", response.items?.[0]?.morningbrew);
+        const response = await xanoService.listJobs(
+          currentPage,
+          pageSize,
+          debouncedSearch,
+          {} // TODO: Convert columnFilters to proper format
+        );
+        
+        const loadTime = Date.now() - startTime;
+        console.log(`API Response - page: ${currentPage}, pageSize: ${pageSize}`);
+        console.log(`Response items count: ${response.items?.length || response.length}`);
+        console.log(`Load time: ${loadTime}ms`);
 
-        // FIX: Extract custom fields from morningbrew object if it exists
-        const fixedJobs = (response.items || []).map((job: JobPosting) => ({
-          ...job,
-          custom_company_name:
-            job.morningbrew?.custom_company_name || job.custom_company_name,
-          custom_location:
-            job.morningbrew?.custom_location || job.custom_location,
-          // Add the missing custom employment type and remote fields
-          morningbrew: job.morningbrew ? {
-            ...job.morningbrew,
-            custom_employment_type: job.morningbrew.custom_employment_type,
-            custom_is_remote: job.morningbrew.custom_is_remote
-          } : job.morningbrew
-        }));
+        // Handle pagination response
+        if (response.items) {
+          // FIX: Extract custom fields from morningbrew object if it exists
+          const fixedJobs = (response.items || []).map((job: JobPosting) => ({
+            ...job,
+            custom_company_name:
+              job.morningbrew?.custom_company_name || job.custom_company_name,
+            custom_location:
+              job.morningbrew?.custom_location || job.custom_location,
+            // Add the missing custom employment type and remote fields
+            morningbrew: job.morningbrew ? {
+              ...job.morningbrew,
+              custom_employment_type: job.morningbrew.custom_employment_type,
+              custom_is_remote: job.morningbrew.custom_is_remote
+            } : job.morningbrew
+          }));
 
-        setJobs(fixedJobs);
+          setJobs(fixedJobs);
+          // Since Xano doesn't return itemsTotal, we'll use a different approach
+          // If there's a nextPage, we know there are more records
+          if (response.nextPage) {
+            // Estimate total items based on current page and the fact there's more
+            // This ensures pagination controls work
+            setTotalItems((currentPage + 5) * pageSize); // Show at least 5 more pages
+          } else {
+            // We're on the last page
+            setTotalItems((currentPage - 1) * pageSize + response.itemsReceived);
+          }
+        } else {
+          // Fallback for APIs that return array directly
+          setJobs(response);
+          setTotalItems(response.length);
+        }
       }
     } catch (error: unknown) {
       console.error("Error loading jobs:", error);
@@ -311,6 +521,7 @@ export function JobTableEnhancedV3() {
       });
       setJobs([]);
     } finally {
+      loadingRef.current = false;
       if (!isToggling) {
         setLoading(false);
       }
@@ -690,28 +901,45 @@ export function JobTableEnhancedV3() {
   const table = useReactTable({
     data: tableData,
     columns,
-    initialState: {
-      pagination: {
-        pageSize: 20,
-      },
-    },
+    pageCount: totalItems > 0 ? Math.ceil(totalItems / pageSize) : -1, // -1 for unknown page count
     state: {
       sorting,
       columnVisibility,
       rowSelection,
       columnFilters,
       columnSizing,
+      pagination: {
+        pageIndex: currentPage - 1, // 0-indexed for TanStack
+        pageSize,
+      },
     },
+    manualPagination: true, // Enable server-side pagination
+    manualFiltering: true, // Enable server-side filtering
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     onColumnSizingChange: setColumnSizing,
+    onPaginationChange: (updater) => {
+      const newPagination = typeof updater === 'function' 
+        ? updater({ pageIndex: currentPage - 1, pageSize })
+        : updater;
+      
+      const newPage = newPagination.pageIndex + 1;
+      const newPageSize = newPagination.pageSize;
+      
+      // Only update if values actually changed
+      if (newPage !== currentPage) {
+        setCurrentPage(newPage);
+      }
+      if (newPageSize !== pageSize) {
+        setPageSize(newPageSize);
+      }
+    },
     columnResizeMode: "onEnd" as const,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
@@ -753,6 +981,8 @@ export function JobTableEnhancedV3() {
               table={table}
               onAddJobs={handleAddJobs}
               filterColumn="job_formula"
+              searchValue={searchQuery}
+              onSearchChange={setSearchQuery}
               brandOptions={communities.map((c) => ({
                 value: c.id.toString(),
                 label: c.community_name,
@@ -783,6 +1013,7 @@ export function JobTableEnhancedV3() {
                   setTimeout(() => setIsToggling(false), 100);
                 }, 50);
               }}
+              totalItems={totalItems}
             />
 
             <div className="flex-1 rounded-lg border bg-white dark:bg-gray-950 shadow-sm overflow-hidden relative mt-4">
@@ -791,99 +1022,7 @@ export function JobTableEnhancedV3() {
                   <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
                 </div>
               )}
-              <div className="h-full overflow-auto relative">
-                <Table className="relative min-w-[2000px]">
-                  <TableHeader className="bg-white dark:bg-gray-950 sticky top-0 z-20 border-b-2 border-gray-200 dark:border-gray-700 shadow-sm">
-                    {table.getHeaderGroups().map((headerGroup) => (
-                      <TableRow key={headerGroup.id}>
-                        {headerGroup.headers.map((header) => {
-                          return (
-                            <TableHead
-                              key={`${headerGroup.id}_${header.id}`}
-                              colSpan={header.colSpan}
-                              style={{ width: header.getSize() }}
-                              className="relative"
-                            >
-                              {header.isPlaceholder ? null : (
-                                <>
-                                  {flexRender(
-                                    header.column.columnDef.header,
-                                    header.getContext(),
-                                  )}
-                                  {header.column.getCanResize() && (
-                                    <div
-                                      onMouseDown={header.getResizeHandler()}
-                                      onTouchStart={header.getResizeHandler()}
-                                      className="absolute right-0 top-0 h-full w-1 cursor-col-resize select-none touch-none hover:bg-primary/20 hover:w-2 transition-all"
-                                      onClick={(e) => e.stopPropagation()}
-                                    />
-                                  )}
-                                </>
-                              )}
-                            </TableHead>
-                          );
-                        })}
-                      </TableRow>
-                    ))}
-                  </TableHeader>
-                  <TableBody>
-                    {table.getRowModel().rows?.length ? (
-                      table.getRowModel().rows.map((row) => (
-                        <TableRow
-                          key={row.id}
-                          data-state={row.getIsSelected() && "selected"}
-                          onClick={(e) => {
-                            // Prevent single click from interfering with double-click
-                            if (e.detail === 2) return; // This is a double-click, ignore it
-                            
-                            const target = e.target as HTMLElement;
-                            const isButton = target.closest("button");
-                            const isLink = target.closest("a");
-                            const isCheckbox = target.closest(
-                              'input[type="checkbox"]',
-                            );
-                            const isInput =
-                              target.closest('input[type="text"]');
-
-                            if (
-                              !isButton &&
-                              !isLink &&
-                              !isCheckbox &&
-                              !isInput
-                            ) {
-                              row.toggleSelected();
-                            }
-                          }}
-                          className={cn(
-                            "group cursor-pointer transition-colors hover:bg-gray-50/50 dark:hover:bg-gray-900/50",
-                            row.original.is_morningbrew &&
-                              row.original.morningbrew?.is_priority &&
-                              "bg-amber-50/30 hover:bg-amber-50/50",
-                          )}
-                        >
-                          {row.getVisibleCells().map((cell) => (
-                            <TableCell key={`${row.id}_${cell.column.id}`}>
-                              {flexRender(
-                                cell.column.columnDef.cell,
-                                cell.getContext(),
-                              )}
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell
-                          colSpan={columns.length}
-                          className="h-24 text-center"
-                        >
-                          No results.
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
+              <VirtualizedTable table={table} columns={columns} />
             </div>
 
             <div className="mt-3 pt-3 border-t border-gray-200">

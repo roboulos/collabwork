@@ -119,9 +119,12 @@ class XanoService {
     });
   }
 
-  async listJobs(page: number = 0) {
+  async listJobs(page: number = 1, per_page: number = 50, search?: string, filters?: Record<string, unknown>) {
     const response = await this.axiosInstance.post('/api:microapp/ashley/list-jobs', {
       page: page,
+      per_page: per_page,
+      search: search || '',
+      filters: filters || {}
     });
     return response.data;
   }

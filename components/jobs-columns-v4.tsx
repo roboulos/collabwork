@@ -10,6 +10,7 @@ import {
   XIcon,
   Sparkles,
   Plus,
+  Pencil,
 } from "lucide-react";
 
 import { DataTableColumnHeader } from "./data-table/data-table-column-header";
@@ -39,6 +40,75 @@ interface JobsColumnsProps {
   onSaveEdit: () => void;
   onCancelEdit: () => void;
 }
+
+// Reusable editing component for cleaner AG Grid-like experience
+const EditingCell = ({ 
+  value, 
+  onChange, 
+  onSave, 
+  onCancel,
+  placeholder,
+  className = ""
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  onSave: () => void;
+  onCancel: () => void;
+  placeholder?: string;
+  className?: string;
+}) => (
+  <div
+    className={cn(
+      "absolute -inset-x-2 -inset-y-3 z-50 flex items-center bg-white dark:bg-gray-900",
+      "border-2 border-blue-500 rounded-lg shadow-2xl",
+      "min-h-[56px]", // Even more height
+      className
+    )}
+    onClick={(e) => e.stopPropagation()}
+  >
+    <Input
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          onSave();
+        }
+        if (e.key === "Escape") {
+          e.preventDefault();
+          onCancel();
+        }
+        if (e.key === "Tab") {
+          e.preventDefault();
+          onSave();
+        }
+      }}
+      onBlur={(e) => {
+        // Only save if not clicking on cancel button
+        const relatedTarget = e.relatedTarget as HTMLElement;
+        if (!relatedTarget?.closest('[aria-label="Cancel"]')) {
+          onSave();
+        }
+      }}
+      className="h-full w-full px-5 py-3 text-base border-0 bg-transparent focus:outline-none font-medium text-gray-900 dark:text-gray-100"
+      placeholder={placeholder}
+      autoFocus
+      onFocus={(e) => e.target.select()}
+    />
+    <div className="flex items-center pr-2">
+      <Button
+        size="sm"
+        variant="ghost"
+        className="h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
+        onClick={onCancel}
+        aria-label="Cancel"
+        tabIndex={-1}
+      >
+        <XIcon className="h-4 w-4 text-gray-500" />
+      </Button>
+    </div>
+  </div>
+);
 
 // Helper components for feed source and MB status badges
 const FeedSourceBadge = ({
@@ -199,70 +269,55 @@ export const createJobsColumnsV4 = ({
       const company = job.custom_company_name || job.company;
       const isSourceDeleted = job.morningbrew?.is_source_deleted;
 
-      if (isEditing) {
-        return (
-          <div
-            className="flex items-center gap-1 bg-background border border-input rounded-md px-2 py-0.5 -mx-1 shadow-sm"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Input
-              value={editValue}
-              onChange={(e) => setEditValue(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") onSaveEdit();
-                if (e.key === "Escape") onCancelEdit();
-              }}
-              className="h-7 text-sm border-0 bg-transparent focus:outline-none"
-              autoFocus
-              title="Press Enter to save, Esc to cancel"
-            />
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-8 w-8 p-0"
-              onClick={onSaveEdit}
-              aria-label="Save"
-            >
-              <Check className="h-4 w-4 text-green-600" />
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-8 w-8 p-0"
-              onClick={onCancelEdit}
-              aria-label="Cancel"
-            >
-              <XIcon className="h-4 w-4 text-red-600" />
-            </Button>
-          </div>
-        );
-      }
-
       return (
         <div
-          className={cn("group cursor-text", isSourceDeleted && "opacity-60")}
-          onDoubleClick={() => {
-            console.log("Double-click event fired for company:", job.id, company);
-            onStartEdit(job.id, "company", company);
-          }}
+          className={cn("group relative min-h-[48px] py-2", isSourceDeleted && "opacity-60")}
         >
-          <span className="font-semibold text-sm text-gray-900 dark:text-gray-100 leading-tight group-hover:underline group-hover:decoration-dotted block">
-            {company || "Unknown Company"}
-          </span>
-          {job.morningbrew?.cached_company &&
-            job.morningbrew.cached_company !== company && (
-              <span className="text-xs text-muted-foreground/70 italic block mt-0.5">
-                was: {job.company}
-              </span>
-            )}
-          {(job.sector || job.industry) && (
-            <span className="text-xs text-muted-foreground/80 leading-tight block mt-1">
-              {job.sector && <span>{job.sector}</span>}
-              {job.sector && job.industry && (
-                <span className="mx-1 opacity-40">•</span>
+          {isEditing ? (
+            <EditingCell
+              value={editValue}
+              onChange={setEditValue}
+              onSave={onSaveEdit}
+              onCancel={onCancelEdit}
+              placeholder="Enter company name"
+            />
+          ) : (
+            <div className="flex items-center gap-1">
+              <div className="flex-1">
+                <span className="font-semibold text-sm text-gray-900 dark:text-gray-100 leading-tight block">
+                  {company || "Unknown Company"}
+                </span>
+                {job.morningbrew?.cached_company &&
+                  job.morningbrew.cached_company !== company && (
+                    <span className="text-xs text-muted-foreground/70 italic block mt-0.5">
+                      was: {job.company}
+                    </span>
+                  )}
+                {(job.sector || job.industry) && (
+                  <span className="text-xs text-muted-foreground/80 leading-tight block mt-1">
+                    {job.sector && <span>{job.sector}</span>}
+                    {job.sector && job.industry && (
+                      <span className="mx-1 opacity-40">•</span>
+                    )}
+                    {job.industry && <span>{job.industry}</span>}
+                  </span>
+                )}
+              </div>
+              {job.is_morningbrew && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onStartEdit(job.id, "company", company);
+                  }}
+                  aria-label="Edit company"
+                >
+                  <Pencil className="h-3 w-3 text-gray-600 dark:text-gray-400" />
+                </Button>
               )}
-              {job.industry && <span>{job.industry}</span>}
-            </span>
+            </div>
           )}
         </div>
       );
@@ -297,84 +352,70 @@ export const createJobsColumnsV4 = ({
         editingCell?.jobId === job.id && editingCell?.field === "title";
       const isSourceDeleted = job.morningbrew?.is_source_deleted;
 
-      if (isEditing) {
-        return (
-          <div
-            className="flex items-center gap-1 bg-background border border-input rounded-md px-2 py-0.5 -mx-1 shadow-sm"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Input
-              value={editValue}
-              onChange={(e) => setEditValue(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") onSaveEdit();
-                if (e.key === "Escape") onCancelEdit();
-              }}
-              className="h-7 text-sm border-0 bg-transparent focus:outline-none"
-              autoFocus
-              title="Press Enter to save, Esc to cancel"
-            />
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-8 w-8 p-0"
-              onClick={onSaveEdit}
-              aria-label="Save"
-            >
-              <Check className="h-4 w-4 text-green-600" />
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-8 w-8 p-0"
-              onClick={onCancelEdit}
-              aria-label="Cancel"
-            >
-              <XIcon className="h-4 w-4 text-red-600" />
-            </Button>
-          </div>
-        );
-      }
-
       const title =
         job.morningbrew?.formatted_title || job.ai_title || job.title;
 
       return (
-        <div className={cn("space-y-1.5", isSourceDeleted && "opacity-60")}>
-          <div
-            className="group cursor-text"
-            onDoubleClick={() => onStartEdit(job.id, "title", title)}
-          >
-            {job.application_url && !isSourceDeleted ? (
-              <a
-                href={job.application_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 text-blue-600 hover:text-blue-800 hover:underline text-sm font-medium"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <span className="leading-tight font-medium">
-                  {title || "Untitled Position"}
-                </span>
-                <ExternalLink className="h-3.5 w-3.5 flex-shrink-0" />
-              </a>
-            ) : (
-              <span
-                className={cn(
-                  "font-semibold text-sm text-gray-900 dark:text-gray-100 leading-tight block group-hover:underline group-hover:decoration-dotted",
-                  isSourceDeleted && "line-through decoration-red-400",
+        <div className={cn("space-y-1.5 relative min-h-[48px] py-2", isSourceDeleted && "opacity-60")}>
+          {isEditing ? (
+            <EditingCell
+              value={editValue}
+              onChange={setEditValue}
+              onSave={onSaveEdit}
+              onCancel={onCancelEdit}
+              placeholder="Enter job title"
+            />
+          ) : (
+          <div className="group relative">
+            <div className="flex items-center gap-1">
+              <div className="flex-1">
+                {job.application_url && !isSourceDeleted ? (
+                  <a
+                    href={job.application_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-blue-600 hover:text-blue-800 hover:underline text-sm font-medium"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <span className="leading-tight font-medium">
+                      {title || "Untitled Position"}
+                    </span>
+                    <ExternalLink className="h-3.5 w-3.5 flex-shrink-0" />
+                  </a>
+                ) : (
+                  <span
+                    className={cn(
+                      "font-semibold text-sm text-gray-900 dark:text-gray-100 leading-tight block",
+                      isSourceDeleted && "line-through decoration-red-400",
+                    )}
+                  >
+                    {title || "Untitled Position"}
+                  </span>
                 )}
-              >
-                {title || "Untitled Position"}
-              </span>
-            )}
-            {job.morningbrew?.formatted_title &&
-              job.morningbrew.formatted_title !== job.ai_title && (
-                <span className="text-xs text-muted-foreground/70 italic">
-                  was: {job.ai_title || job.title}
-                </span>
+                {job.morningbrew?.formatted_title &&
+                  job.morningbrew.formatted_title !== job.ai_title && (
+                    <span className="text-xs text-muted-foreground/70 italic">
+                      was: {job.ai_title || job.title}
+                    </span>
+                  )}
+              </div>
+              {job.is_morningbrew && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onStartEdit(job.id, "title", title);
+                  }}
+                  aria-label="Edit title"
+                >
+                  <Pencil className="h-3 w-3 text-gray-600 dark:text-gray-400" />
+                </Button>
               )}
+            </div>
           </div>
+          )}
         </div>
       );
     },
@@ -423,59 +464,45 @@ export const createJobsColumnsV4 = ({
       const displayLocation =
         job.morningbrew?.cached_location || location || "Not specified";
 
-      if (isEditing) {
-        return (
-          <div
-            className="flex items-center gap-1 bg-background border border-input rounded-md px-2 py-0.5 -mx-1 shadow-sm"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Input
-              value={editValue}
-              onChange={(e) => setEditValue(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") onSaveEdit();
-                if (e.key === "Escape") onCancelEdit();
-              }}
-              className="h-7 text-sm border-0 bg-transparent focus:outline-none"
-              autoFocus
-              title="Press Enter to save, Esc to cancel"
-            />
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-8 w-8 p-0"
-              onClick={onSaveEdit}
-              aria-label="Save"
-            >
-              <Check className="h-4 w-4 text-green-600" />
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-8 w-8 p-0"
-              onClick={onCancelEdit}
-              aria-label="Cancel"
-            >
-              <XIcon className="h-4 w-4 text-red-600" />
-            </Button>
-          </div>
-        );
-      }
-
       return (
-        <div
-          className="group cursor-text"
-          onDoubleClick={() => onStartEdit(job.id, "location", displayLocation)}
-        >
-          <span className="text-sm group-hover:underline group-hover:decoration-dotted">
-            {displayLocation}
-          </span>
-          {job.morningbrew?.cached_location &&
-            job.morningbrew.cached_location !== location && (
-              <span className="text-xs text-muted-foreground block">
-                Original: {location}
+        <div className="group relative min-h-[48px] py-2">
+          {isEditing ? (
+            <EditingCell
+              value={editValue}
+              onChange={setEditValue}
+              onSave={onSaveEdit}
+              onCancel={onCancelEdit}
+              placeholder="Enter location (e.g., New York, NY)"
+            />
+          ) : (
+          <div className="flex items-center gap-1">
+            <div className="flex-1">
+              <span className="text-sm">
+                {displayLocation}
               </span>
+              {job.morningbrew?.cached_location &&
+                job.morningbrew.cached_location !== location && (
+                  <span className="text-xs text-muted-foreground block">
+                    Original: {location}
+                  </span>
+                )}
+            </div>
+            {job.is_morningbrew && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onStartEdit(job.id, "location", displayLocation);
+                }}
+                aria-label="Edit location"
+              >
+                <Pencil className="h-3 w-3 text-gray-600 dark:text-gray-400" />
+              </Button>
             )}
+          </div>
+          )}
         </div>
       );
     },
@@ -522,7 +549,7 @@ export const createJobsColumnsV4 = ({
               className="h-7 text-sm border-0 bg-transparent focus:outline-none"
               autoFocus
               placeholder="e.g., full-time, part-time, contract"
-              title="Press Enter to save, Esc to cancel"
+              title="Auto-saves when you click outside"
             />
             <Button
               size="sm"
@@ -549,31 +576,32 @@ export const createJobsColumnsV4 = ({
       return (
         <div
           className={cn(
-            "group",
-            job.is_morningbrew
-              ? "cursor-text"
-              : "cursor-not-allowed opacity-70",
+            "group relative",
+            !job.is_morningbrew && "opacity-70",
           )}
-          onDoubleClick={() =>
-            job.is_morningbrew &&
-            onStartEdit(job.id, "employment_type", type || "")
-          }
-          title={
-            !job.is_morningbrew
-              ? "Add to Morning Brew to edit this field"
-              : "Double-click to edit"
-          }
         >
-          <Badge
-            variant="outline"
-            className={cn(
-              "font-normal",
-              job.is_morningbrew &&
-                "group-hover:ring-1 group-hover:ring-gray-300",
+          <div className="flex items-center gap-1">
+            <Badge
+              variant="outline"
+              className="font-normal"
+            >
+              {displayType}
+            </Badge>
+            {job.is_morningbrew && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onStartEdit(job.id, "employment_type", type || "");
+                }}
+                aria-label="Edit employment type"
+              >
+                <Pencil className="h-3 w-3 text-gray-600 dark:text-gray-400" />
+              </Button>
             )}
-          >
-            {displayType}
-          </Badge>
+          </div>
         </div>
       );
     },
@@ -617,6 +645,7 @@ export const createJobsColumnsV4 = ({
                 if (e.key === "Enter") onSaveEdit();
                 if (e.key === "Escape") onCancelEdit();
               }}
+              onBlur={onSaveEdit}
               className="h-7 text-sm border-0 bg-transparent focus:outline-none cursor-pointer"
               autoFocus
             >
@@ -649,35 +678,38 @@ export const createJobsColumnsV4 = ({
       return (
         <div
           className={cn(
-            "group",
-            job.is_morningbrew
-              ? "cursor-text"
-              : "cursor-not-allowed opacity-70",
+            "group relative",
+            !job.is_morningbrew && "opacity-70",
           )}
-          onDoubleClick={() =>
-            job.is_morningbrew &&
-            onStartEdit(job.id, "is_remote", displayStatus)
-          }
-          title={
-            !job.is_morningbrew
-              ? "Add to Morning Brew to edit this field"
-              : "Double-click to edit"
-          }
         >
-          <Badge
-            variant="outline"
-            className={cn(
-              job.is_morningbrew &&
-                "group-hover:ring-1 group-hover:ring-gray-300",
-              displayStatus === "Remote"
-                ? "border-green-300 text-green-600"
-                : displayStatus === "Hybrid"
-                  ? "border-blue-300 text-blue-600"
-                  : "border-gray-200 text-gray-400",
+          <div className="flex items-center gap-1">
+            <Badge
+              variant="outline"
+              className={cn(
+                displayStatus === "Remote"
+                  ? "border-green-300 text-green-600"
+                  : displayStatus === "Hybrid"
+                    ? "border-blue-300 text-blue-600"
+                    : "border-gray-200 text-gray-400",
+              )}
+            >
+              {displayStatus}
+            </Badge>
+            {job.is_morningbrew && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onStartEdit(job.id, "is_remote", displayStatus);
+                }}
+                aria-label="Edit remote status"
+              >
+                <Pencil className="h-3 w-3 text-gray-600 dark:text-gray-400" />
+              </Button>
             )}
-          >
-            {displayStatus}
-          </Badge>
+          </div>
         </div>
       );
     },
