@@ -49,6 +49,7 @@ import {
   Community,
   UpdateJobPayload,
 } from "@/lib/xano";
+import "../styles/table-theme.css";
 
 // Virtualized table component  
 interface VirtualizedTableProps {
@@ -167,7 +168,9 @@ function VirtualizedTable({ table, columns }: VirtualizedTableProps) {
                 return (
                   <TableRow
                     key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
+                    data-selected={row.getIsSelected()}
+                    data-priority={(row.original as JobPosting).morningbrew?.is_priority || false}
+                    data-morningbrew={(row.original as JobPosting).is_morningbrew || false}
                     onClick={(e: React.MouseEvent<HTMLTableRowElement>) => {
                       if (e.detail === 2) return;
                       const target = e.target as HTMLElement;
@@ -180,12 +183,7 @@ function VirtualizedTable({ table, columns }: VirtualizedTableProps) {
                         row.toggleSelected();
                       }
                     }}
-                    className={cn(
-                      "group cursor-pointer transition-colors hover:bg-gray-50/50 dark:hover:bg-gray-900/50",
-                      (row.original as JobPosting).is_morningbrew &&
-                        (row.original as JobPosting).morningbrew?.is_priority &&
-                        "bg-amber-50/30 hover:bg-amber-50/50",
-                    )}
+                    className="job-row"
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell 
@@ -1068,7 +1066,10 @@ export function JobTableEnhancedV3() {
               totalItems={totalItems}
             />
 
-            <div className="flex-1 rounded-lg border bg-white dark:bg-gray-950 shadow-sm overflow-hidden relative mt-4">
+            <div className={cn(
+              "flex-1 rounded-lg border bg-white dark:bg-gray-950 shadow-sm overflow-hidden relative mt-4",
+              showMorningBrewOnly && "morningbrew-view"
+            )}>
               {(isToggling || (loading && jobs.length > 0)) && (
                 <LoadingOverlay 
                   type={isToggling ? "toggle" : debouncedSearch ? "search" : "loading"}

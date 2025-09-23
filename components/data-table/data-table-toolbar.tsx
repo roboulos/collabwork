@@ -2,6 +2,7 @@
 
 import { Cross2Icon } from "@radix-ui/react-icons"
 import { Table } from "@tanstack/react-table"
+import "../../styles/table-theme.css"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DataTableViewOptions } from "./data-table-view-options"
@@ -100,16 +101,25 @@ export function DataTableToolbar<TData>({
             </span>
           )}
           {onToggleMorningBrewView && (
-            <div className="flex items-center space-x-2">
-              <Coffee className="h-4 w-4 text-muted-foreground" />
-              <Label htmlFor="mb-view" className="text-sm font-medium">
-                Morning Brew View
-              </Label>
+            <div className="flex items-center gap-3">
+              {!showMorningBrewOnly && (
+                <span className="view-indicator ashley-view">
+                  <Coffee className="h-4 w-4 mr-1 inline" />
+                  Ashley View
+                </span>
+              )}
               <Switch
                 id="mb-view"
                 checked={showMorningBrewOnly}
                 onCheckedChange={onToggleMorningBrewView}
+                className="data-[state=checked]:bg-amber-500"
               />
+              {showMorningBrewOnly && (
+                <span className="view-indicator morningbrew-view">
+                  <Coffee className="h-4 w-4 mr-1 inline" />
+                  MorningBrew View
+                </span>
+              )}
             </div>
           )}
           {onAddJobs && (

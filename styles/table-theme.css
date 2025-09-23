@@ -1,0 +1,208 @@
+/* CollabWork Table Design System */
+/* Clear visual hierarchy for job states and views */
+
+:root {
+  /* Light Mode Colors */
+  --row-default: #ffffff;
+  --row-hover: #f8f9fa;
+  --row-selected: #e3f2fd;
+  --row-selected-hover: #bbdefb;
+  --row-priority: #fff8e1;
+  --row-priority-hover: #ffecb3;
+  --row-priority-selected: #ffe082;
+  
+  /* Status Colors */
+  --status-curated: #9c27b0;
+  --status-pending: #ff9800;
+  --status-active: #4caf50;
+  
+  /* Brand Colors */
+  --morningbrew-accent: #f59e0b;
+  --ashley-accent: #3b82f6;
+  
+  /* Borders */
+  --border-default: #e5e7eb;
+  --border-selected: #2196f3;
+  --border-priority: #f59e0b;
+}
+
+.dark {
+  /* Dark Mode Colors */
+  --row-default: #111827;
+  --row-hover: #1f2937;
+  --row-selected: #1e3a5f;
+  --row-selected-hover: #2563eb;
+  --row-priority: #422006;
+  --row-priority-hover: #451a03;
+  --row-priority-selected: #7c2d12;
+  
+  /* Status Colors */
+  --status-curated: #e91e63;
+  --status-pending: #ffa726;
+  --status-active: #66bb6a;
+  
+  /* Brand Colors */
+  --morningbrew-accent: #fbbf24;
+  --ashley-accent: #60a5fa;
+  
+  /* Borders */
+  --border-default: #374151;
+  --border-selected: #60a5fa;
+  --border-priority: #fbbf24;
+}
+
+/* Row States */
+.job-row {
+  transition: all 0.15s ease;
+  border-left: 3px solid transparent;
+}
+
+.job-row:hover {
+  background-color: var(--row-hover);
+}
+
+/* Selected State */
+.job-row[data-selected="true"] {
+  background-color: var(--row-selected) !important;
+  border-left-color: var(--border-selected);
+}
+
+.job-row[data-selected="true"]:hover {
+  background-color: var(--row-selected-hover) !important;
+}
+
+/* Priority/Starred State */
+.job-row[data-priority="true"] {
+  background-color: var(--row-priority);
+  border-left-color: var(--border-priority);
+}
+
+.job-row[data-priority="true"]:hover {
+  background-color: var(--row-priority-hover);
+}
+
+/* Selected + Priority */
+.job-row[data-selected="true"][data-priority="true"] {
+  background-color: var(--row-priority-selected) !important;
+  border-left-color: var(--border-priority);
+  box-shadow: inset 0 0 0 1px var(--border-selected);
+}
+
+/* MorningBrew View Indicator */
+.morningbrew-view .job-row[data-morningbrew="true"] {
+  position: relative;
+}
+
+.morningbrew-view .job-row[data-morningbrew="true"]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--morningbrew-accent);
+}
+
+/* Status Badges */
+.badge-curated {
+  background-color: var(--status-curated) !important;
+  color: white !important;
+  font-weight: 600;
+  border: none !important;
+}
+
+.badge-pending {
+  background-color: var(--status-pending) !important;
+  color: white !important;
+  border: none !important;
+}
+
+.badge-active {
+  background-color: var(--status-active) !important;
+  color: white !important;
+  border: none !important;
+}
+
+.badge-priority {
+  background-color: var(--morningbrew-accent) !important;
+  color: white !important;
+  font-weight: 600;
+  border: none !important;
+}
+
+/* Priority Star Icon */
+.priority-star {
+  color: var(--morningbrew-accent);
+  fill: var(--morningbrew-accent);
+}
+
+/* Checkbox Styling */
+.job-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--ashley-accent);
+}
+
+.job-row[data-selected="true"] input[type="checkbox"] {
+  accent-color: var(--border-selected);
+}
+
+/* View Toggle Indicator */
+.view-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.view-indicator.ashley-view {
+  background-color: var(--ashley-accent);
+  color: white;
+}
+
+.view-indicator.morningbrew-view {
+  background-color: var(--morningbrew-accent);
+  color: white;
+}
+
+/* Clear Visual Feedback */
+.selection-count {
+  background: var(--ashley-accent);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+/* Table Header */
+.table-header {
+  background-color: var(--row-hover);
+  border-bottom: 2px solid var(--border-default);
+  font-weight: 600;
+}
+
+/* Action Buttons */
+.action-button {
+  transition: all 0.15s ease;
+  opacity: 0.8;
+}
+
+.action-button:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* Copy Button */
+.copy-button:active {
+  transform: scale(0.95);
+}
+
+/* Remove confusing amber background */
+.bg-amber-50\/30 {
+  background-color: transparent !important;
+}
