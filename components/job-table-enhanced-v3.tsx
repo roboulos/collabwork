@@ -1144,7 +1144,7 @@ export function JobTableEnhancedV3() {
 
             <div className={cn(
               "flex-1 rounded-lg border bg-white dark:bg-gray-950 shadow-sm overflow-hidden relative mt-4 table-container",
-              showMorningBrewOnly && "morningbrew-view"
+              showMorningBrewOnly ? "morningbrew-view" : "collabwork-view"
             )}>
               {(isToggling || (loading && jobs.length > 0)) && (
                 <LoadingOverlay 

@@ -91,7 +91,7 @@ export const createJobsColumns = ({
                 href={job.application_url} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline"
+                className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline"
                 onClick={(e) => e.stopPropagation()}
               >
                 {title}

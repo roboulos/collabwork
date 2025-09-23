@@ -220,6 +220,14 @@
   box-shadow: inset 2px 0 0 var(--accent-morningbrew);
 }
 
+/* CollabWork View - Add subtle indicator for Morning Brew jobs */
+.collabwork-view .job-row[data-morningbrew="true"] {
+  /* Very subtle background tint - barely visible but enough to distinguish */
+  background: var(--background-selected-hover); /* Using existing selected-hover color for consistency */
+  /* Subtle left accent - thinner than in MB view */
+  box-shadow: inset 1px 0 0 var(--accent-morningbrew);
+}
+
 /* ============================== */
 /* Badge System - Refined */
 /* ============================== */

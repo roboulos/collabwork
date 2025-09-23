@@ -349,6 +349,17 @@ export const createJobsColumnsV4 = ({
 
       const title =
         job.morningbrew?.formatted_title || job.ai_title || job.title;
+      const company = job.custom_company_name || job.company || "Company";
+      
+      // Determine remote status
+      let remoteStatus = "On-site";
+      if (job.morningbrew?.custom_is_remote) {
+        remoteStatus = job.morningbrew.custom_is_remote;
+      } else if (job.custom_is_remote) {
+        remoteStatus = job.custom_is_remote;
+      } else if (job.is_remote) {
+        remoteStatus = "Remote";
+      }
 
       return (
         <div className={cn("space-y-1.5 relative min-h-[40px]", isSourceDeleted && "opacity-60")}>
@@ -362,31 +373,33 @@ export const createJobsColumnsV4 = ({
             />
           ) : (
           <div className="group relative">
-            <div className="flex items-center gap-1">
+            <div className="flex items-start gap-2">
               <div className="flex-1">
-                {job.application_url && !isSourceDeleted ? (
-                  <a
-                    href={job.application_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 text-blue-600 hover:text-blue-800 hover:underline text-sm font-medium"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <span className="leading-tight font-medium">
-                      {title || "Untitled Position"}
+                <div className="flex items-center gap-1 flex-wrap">
+                  {job.application_url && !isSourceDeleted ? (
+                    <a
+                      href={job.application_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline text-sm"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <span className="leading-tight">
+                        {title || "Untitled Position"} - {company} - {remoteStatus}
+                      </span>
+                      <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                    </a>
+                  ) : (
+                    <span
+                      className={cn(
+                        "text-sm text-gray-900 dark:text-gray-100 leading-tight",
+                        isSourceDeleted && "line-through decoration-red-400",
+                      )}
+                    >
+                      {title || "Untitled Position"} - {company} - {remoteStatus}
                     </span>
-                    <ExternalLink className="h-3.5 w-3.5 flex-shrink-0" />
-                  </a>
-                ) : (
-                  <span
-                    className={cn(
-                      "font-semibold text-sm text-gray-900 dark:text-gray-100 leading-tight block",
-                      isSourceDeleted && "line-through decoration-red-400",
-                    )}
-                  >
-                    {title || "Untitled Position"}
-                  </span>
-                )}
+                  )}
+                </div>
                 {job.morningbrew?.formatted_title &&
                   job.morningbrew.formatted_title !== job.ai_title && (
                     <span className="text-xs text-muted-foreground/70 italic">
@@ -394,20 +407,41 @@ export const createJobsColumnsV4 = ({
                     </span>
                   )}
               </div>
-              {job.is_morningbrew && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onStartEdit(job.id, "title", title);
-                  }}
-                  aria-label="Edit title"
-                >
-                  <Pencil className="h-3 w-3 text-gray-600 dark:text-gray-400" />
-                </Button>
-              )}
+              <div className="flex items-center gap-1">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onCopyJob(job);
+                        }}
+                        aria-label="Copy job text for newsletter"
+                      >
+                        <Copy className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Copy for newsletter</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                {job.is_morningbrew && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onStartEdit(job.id, "title", title);
+                    }}
+                    aria-label="Edit title"
+                  >
+                    <Pencil className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400" />
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
           )}
@@ -1082,26 +1116,6 @@ export const createJobsColumnsV4 = ({
 
       return (
         <div className="flex items-center justify-end gap-1 opacity-60 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="action-button copy-button h-8 w-8 p-0"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onCopyJob(job);
-                  }}
-                  aria-label="Copy job text for newsletter"
-                >
-                  <Copy className="h-5 w-5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Copy job text for newsletter</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
           {job.is_morningbrew && (
             <>
               <TooltipProvider>
