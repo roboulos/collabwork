@@ -71,7 +71,7 @@ export function DataTableToolbar<TData>({
           {table.getColumn("morningbrew_brands") && brandOptions.length > 0 && (
             <DataTableFacetedFilter
               column={table.getColumn("morningbrew_brands")}
-              title="MorningBrew Brands"
+              title="Morning Brew Brands"
               options={brandOptions}
             />
           )}
@@ -120,7 +120,7 @@ export function DataTableToolbar<TData>({
               {showMorningBrewOnly && (
                 <span className="view-indicator morningbrew-view">
                   <Coffee className="h-4 w-4" />
-                  MorningBrew View
+                  Morning Brew View
                 </span>
               )}
             </div>
@@ -133,7 +133,7 @@ export function DataTableToolbar<TData>({
               className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white"
             >
               <Plus className="mr-2 h-4 w-4" />
-              Add to MorningBrew
+              Add to Morning Brew
             </Button>
           )}
           <DataTableViewOptions table={table} />

@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "CollabWork - Job Curation Dashboard",
-  description: "MorningBrew job curation platform",
+  description: "Morning Brew job curation platform",
 };
 
 export default function RootLayout({

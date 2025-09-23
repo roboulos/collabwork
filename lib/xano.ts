@@ -43,7 +43,17 @@ export interface JobPosting {
   feed_id?: number;
   source?: string;
   custom_company_name?: string;
-  custom_location?: string;
+  custom_location?: string | Array<{
+    city?: string;
+    state?: string;
+    country?: string;
+  }> | {
+    city?: string;
+    state?: string;
+    country?: string;
+  };
+  custom_employment_type?: string;
+  custom_is_remote?: string;
   notes?: string;
   is_priority?: boolean;
   priority_reason?: string;
@@ -72,7 +82,15 @@ export interface JobPosting {
     is_source_deleted?: boolean;
     formatted_title?: string;
     custom_company_name?: string;
-    custom_location?: string;
+    custom_location?: string | Array<{
+      city?: string;
+      state?: string;
+      country?: string;
+    }> | {
+      city?: string;
+      state?: string;
+      country?: string;
+    };
     custom_employment_type?: string;
     custom_is_remote?: string;
     cached_employment_type?: string;
@@ -93,7 +111,11 @@ export interface AddJobPayload {
 export interface UpdateJobPayload {
   job_posting_id: string;
   custom_company_name?: string;
-  custom_location?: string;
+  custom_location?: Array<{
+    city?: string;
+    state?: string;
+    country?: string;
+  }>;
   custom_employment_type?: string;
   custom_is_remote?: string;
   notes?: string;

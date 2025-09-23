@@ -435,7 +435,34 @@ export const createJobsColumnsV4 = ({
       const job = row.original;
       const isEditing =
         editingCell?.jobId === job.id && editingCell?.field === "location";
-      let location = job.custom_location;
+      
+      // Handle custom_location - it might be a string, array, or object
+      let location = "";
+      if (job.custom_location) {
+        if (typeof job.custom_location === 'string') {
+          location = job.custom_location;
+        } else if (Array.isArray(job.custom_location) && job.custom_location.length > 0) {
+          const loc = job.custom_location[0];
+          const parts = [];
+          if (loc.city) parts.push(loc.city);
+          if (loc.state) parts.push(loc.state);
+          if (loc.country && loc.country !== "United States") parts.push(loc.country);
+          location = parts.join(", ");
+        } else if (typeof job.custom_location === 'object' && !Array.isArray(job.custom_location)) {
+          // Handle empty object or single location object
+          if (Object.keys(job.custom_location).length === 0) {
+            location = ""; // Empty object
+          } else {
+            const parts = [];
+            if (job.custom_location.city) parts.push(job.custom_location.city);
+            if (job.custom_location.state) parts.push(job.custom_location.state);
+            if (job.custom_location.country && job.custom_location.country !== "United States") {
+              parts.push(job.custom_location.country);
+            }
+            location = parts.join(", ");
+          }
+        }
+      }
 
       if (
         !location &&
@@ -489,7 +516,7 @@ export const createJobsColumnsV4 = ({
                 className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onStartEdit(job.id, "location", displayLocation);
+                  onStartEdit(job.id, "location", location || "");
                 }}
                 aria-label="Edit location"
               >
@@ -517,6 +544,7 @@ export const createJobsColumnsV4 = ({
         editingCell?.jobId === job.id &&
         editingCell?.field === "employment_type";
       const type =
+        job.custom_employment_type ||
         job.morningbrew?.custom_employment_type ||
         (row.getValue("employment_type") as string);
       const displayType = type
@@ -617,7 +645,8 @@ export const createJobsColumnsV4 = ({
       const job = row.original;
       const isEditing =
         editingCell?.jobId === job.id && editingCell?.field === "is_remote";
-      const customRemote = job.morningbrew?.custom_is_remote;
+      // Check for custom value first (at root level), then morningbrew nested, then fall back to original
+      const customRemote = job.custom_is_remote || job.morningbrew?.custom_is_remote;
       let displayStatus: string;
 
       if (customRemote) {
@@ -698,7 +727,7 @@ export const createJobsColumnsV4 = ({
                 className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onStartEdit(job.id, "is_remote", displayStatus);
+                  onStartEdit(job.id, "is_remote", customRemote || displayStatus);
                 }}
                 aria-label="Edit remote status"
               >
@@ -987,7 +1016,7 @@ export const createJobsColumnsV4 = ({
           {visible.map((c) => (
             <div
               key={c.id}
-              className="group/badge relative inline-flex items-center pr-6"
+              className="group/badge relative inline-flex items-center pr-4"
             >
               <span
                 className={cn(
@@ -1005,7 +1034,7 @@ export const createJobsColumnsV4 = ({
                     e.preventDefault();
                     onRemoveFromCommunity(job.id, c.id);
                   }}
-                  className="absolute -right-1 top-1/2 -translate-y-1/2 bg-white border border-gray-200 rounded-full p-0.5 opacity-50 group-hover/badge:opacity-100 hover:opacity-100 transition-opacity hover:bg-red-50 hover:border-red-300 z-10 cursor-pointer"
+                  className="absolute -right-0.5 top-1/2 -translate-y-1/2 bg-white border border-gray-200 rounded-full p-0.5 opacity-50 group-hover/badge:opacity-100 hover:opacity-100 transition-opacity hover:bg-red-50 hover:border-red-300 z-10 cursor-pointer"
                   aria-label={`Remove from ${c.community_name}`}
                 >
                   <X className="h-2.5 w-2.5 text-gray-600 hover:text-red-600" />
@@ -1066,7 +1095,7 @@ export const createJobsColumnsV4 = ({
                   }}
                   aria-label="Copy job text for newsletter"
                 >
-                  <Copy className="h-4 w-4" />
+                  <Copy className="h-5 w-5" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Copy job text for newsletter</TooltipContent>
@@ -1122,7 +1151,7 @@ export const createJobsColumnsV4 = ({
                       <X className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>Remove from MorningBrew</TooltipContent>
+                  <TooltipContent>Remove from Morning Brew</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </>

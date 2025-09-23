@@ -161,7 +161,30 @@ export const createJobsColumns = ({
     ),
     cell: ({ row }) => {
       const job = row.original
-      let location = job.custom_location
+      
+      // Handle custom_location - convert to string if needed
+      let location = "";
+      if (job.custom_location) {
+        if (typeof job.custom_location === 'string') {
+          location = job.custom_location;
+        } else if (Array.isArray(job.custom_location) && job.custom_location.length > 0) {
+          const loc = job.custom_location[0];
+          const parts = [];
+          if (loc.city) parts.push(loc.city);
+          if (loc.state) parts.push(loc.state);
+          if (loc.country && loc.country !== "United States") parts.push(loc.country);
+          location = parts.join(", ");
+        } else if (typeof job.custom_location === 'object' && !Array.isArray(job.custom_location)) {
+          // Handle single location object
+          const parts = [];
+          if (job.custom_location.city) parts.push(job.custom_location.city);
+          if (job.custom_location.state) parts.push(job.custom_location.state);
+          if (job.custom_location.country && job.custom_location.country !== "United States") {
+            parts.push(job.custom_location.country);
+          }
+          location = parts.join(", ");
+        }
+      }
       
       if (!location && job.location && Array.isArray(job.location) && job.location.length > 0) {
         const loc = job.location[0]

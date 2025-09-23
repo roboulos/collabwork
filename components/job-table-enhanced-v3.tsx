@@ -383,6 +383,8 @@ export function JobTableEnhancedV3() {
             community_ids?: number[];
             formatted_title?: string;
             is_source_deleted?: boolean;
+            type?: string;  // Add employment type field from API
+            is_remote?: string | boolean;  // Add remote status field from API
             job_posting?: JobPosting;
             cached_feed_source?: string;
             cached_payment_type?: string;
@@ -392,7 +394,15 @@ export function JobTableEnhancedV3() {
             created_at?: number;
             morningbrew?: {
               custom_company_name?: string;
-              custom_location?: string;
+              custom_location?: string | Array<{
+                city?: string;
+                state?: string;
+                country?: string;
+              }> | {
+                city?: string;
+                state?: string;
+                country?: string;
+              };
               custom_employment_type?: string;
               custom_is_remote?: string;
             };
@@ -432,12 +442,24 @@ export function JobTableEnhancedV3() {
                 "",
               location: mbJob.location || baseJob.location || [],
               is_morningbrew: true,
-              // Get custom fields from morningbrew object (where they're actually stored)
+              // Get custom fields - now coming directly from API response
               custom_company_name:
                 mbJob.morningbrew?.custom_company_name ||
                 baseJob.custom_company_name,
               custom_location:
                 mbJob.morningbrew?.custom_location || baseJob.custom_location,
+              custom_employment_type:
+                mbJob.type ||  // Use type field from API response
+                mbJob.morningbrew?.custom_employment_type || 
+                baseJob.custom_employment_type,
+              custom_is_remote:
+                // Convert boolean to text values or use existing text
+                mbJob.is_remote !== undefined ? 
+                  (typeof mbJob.is_remote === 'boolean' ? 
+                    (mbJob.is_remote ? "Remote" : "On-site") : 
+                    String(mbJob.is_remote)) :
+                mbJob.morningbrew?.custom_is_remote || 
+                baseJob.custom_is_remote,
               // Use preserved feed source data
               single_partner: feedSource,
               cpc:
@@ -465,8 +487,13 @@ export function JobTableEnhancedV3() {
                 formatted_title: mbJob.formatted_title,
                 is_source_deleted: mbJob.is_source_deleted || false,
                 custom_employment_type:
-                  mbJob.morningbrew?.custom_employment_type,
-                custom_is_remote: mbJob.morningbrew?.custom_is_remote,
+                  mbJob.type || mbJob.morningbrew?.custom_employment_type,
+                custom_is_remote: 
+                  mbJob.is_remote !== undefined ? 
+                    (typeof mbJob.is_remote === 'boolean' ? 
+                      (mbJob.is_remote ? "Remote" : "On-site") : 
+                      String(mbJob.is_remote)) :
+                    mbJob.morningbrew?.custom_is_remote,
               },
             };
           },
@@ -500,7 +527,11 @@ export function JobTableEnhancedV3() {
               job.morningbrew?.custom_company_name || job.custom_company_name,
             custom_location:
               job.morningbrew?.custom_location || job.custom_location,
-            // Add the missing custom employment type and remote fields
+            custom_employment_type:
+              job.morningbrew?.custom_employment_type || job.custom_employment_type,
+            custom_is_remote:
+              job.morningbrew?.custom_is_remote || job.custom_is_remote,
+            // Keep the morningbrew object intact
             morningbrew: job.morningbrew ? {
               ...job.morningbrew,
               custom_employment_type: job.morningbrew.custom_employment_type,
@@ -610,9 +641,9 @@ export function JobTableEnhancedV3() {
 
     try {
       await xanoService.removeJob(jobId.toString());
-      setToast({ message: "Job removed from MorningBrew", type: "success" });
+      setToast({ message: "Job removed from Morning Brew", type: "success" });
     } catch (error) {
-      console.error("Error removing job from MorningBrew:", error);
+      console.error("Error removing job from Morning Brew:", error);
       setToast({ message: "Failed to remove job", type: "error" });
       // Revert the optimistic update on error
       const originalJob = jobs.find(j => j.id === jobId);
@@ -721,6 +752,7 @@ export function JobTableEnhancedV3() {
           } else if (editingCell.field === "employment_type") {
             return {
               ...j,
+              custom_employment_type: editValue,  // Update root-level field
               morningbrew: j.morningbrew
                 ? {
                     ...j.morningbrew,
@@ -731,6 +763,7 @@ export function JobTableEnhancedV3() {
           } else if (editingCell.field === "is_remote") {
             return {
               ...j,
+              custom_is_remote: editValue,  // Update root-level field
               morningbrew: j.morningbrew
                 ? {
                     ...j.morningbrew,
@@ -777,10 +810,23 @@ export function JobTableEnhancedV3() {
         if (editingCell.field === "company") {
           updatePayload.custom_company_name = editValue;
         } else if (editingCell.field === "location") {
-          updatePayload.custom_location = editValue;
+          // Convert text location to array format for the backend
+          // If it's a simple string like "Remote - USA" or "San Francisco, CA"
+          // we'll create a basic location object
+          if (editValue) {
+            const parts = editValue.split(',').map(p => p.trim());
+            updatePayload.custom_location = [{
+              city: parts[0] || "",
+              state: parts[1] || "",
+              country: parts[2] || ""
+            }];
+          } else {
+            updatePayload.custom_location = [];
+          }
         } else if (editingCell.field === "employment_type") {
           updatePayload.custom_employment_type = editValue;
         } else if (editingCell.field === "is_remote") {
+          // Send as text string, not boolean
           updatePayload.custom_is_remote = editValue;
         }
 
@@ -796,6 +842,31 @@ export function JobTableEnhancedV3() {
         
         const updateResponse = await xanoService.updateJob(updatePayload);
         console.log("Update response from API:", updateResponse);
+        
+        // Update the local state with the confirmed values from API
+        if (updateResponse.updated_data) {
+          setJobs(prevJobs =>
+            prevJobs.map(j => {
+              if (j.id === editingCell.jobId) {
+                return {
+                  ...j,
+                  custom_company_name: updateResponse.updated_data.custom_company_name || j.custom_company_name,
+                  custom_location: updateResponse.updated_data.custom_location || j.custom_location,
+                  custom_employment_type: updateResponse.updated_data.custom_employment_type || j.custom_employment_type,
+                  custom_is_remote: updateResponse.updated_data.custom_is_remote || j.custom_is_remote,
+                  morningbrew: j.morningbrew ? {
+                    ...j.morningbrew,
+                    custom_company_name: updateResponse.updated_data.custom_company_name || j.morningbrew.custom_company_name,
+                    custom_location: updateResponse.updated_data.custom_location || j.morningbrew.custom_location,
+                    custom_employment_type: updateResponse.updated_data.custom_employment_type || j.morningbrew.custom_employment_type,
+                    custom_is_remote: updateResponse.updated_data.custom_is_remote || j.morningbrew.custom_is_remote,
+                  } : undefined
+                };
+              }
+              return j;
+            })
+          );
+        }
       }
 
       setToast({ message: "Job updated successfully", type: "success" });
@@ -899,14 +970,14 @@ export function JobTableEnhancedV3() {
         await xanoService.addJobPriority({
           job_posting_id: jobId,
           community_ids: communityIds,
-          notes,
+          notes: "",
           is_priority: false,
           priority_reason: "",
         });
       }
 
       setToast({
-        message: `Added ${selectedJobIds.length} jobs to MorningBrew`,
+        message: `Added ${selectedJobIds.length} jobs to Morning Brew`,
         type: "success",
       });
       
@@ -1103,13 +1174,13 @@ export function JobTableEnhancedV3() {
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Add Jobs to MorningBrew</DialogTitle>
+            <DialogTitle>Add Jobs to Morning Brew</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-6 py-4">
             <div>
               <h3 className="text-sm font-medium mb-3">
-                Select MorningBrew Brands:
+                Select Morning Brew Brands:
               </h3>
               <div className="space-y-2.5">
                 {communities.map((community) => (
@@ -1139,18 +1210,6 @@ export function JobTableEnhancedV3() {
               </div>
             </div>
 
-            <div>
-              <label className="text-sm font-medium mb-1 block">
-                Notes (optional)
-              </label>
-              <textarea
-                placeholder="Add any additional notes..."
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                className="w-full p-2 border rounded-md"
-                rows={3}
-              />
-            </div>
           </div>
 
           <DialogFooter>
