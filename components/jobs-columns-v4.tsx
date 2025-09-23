@@ -229,7 +229,8 @@ export const createJobsColumnsV4 = ({
   onCancelEdit,
 }: JobsColumnsProps): ColumnDef<JobPosting>[] => {
   console.log("createJobsColumnsV4 called with onStartEdit:", typeof onStartEdit, onStartEdit);
-  return [
+  
+  const allColumns: ColumnDef<JobPosting>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -1139,4 +1140,7 @@ export const createJobsColumnsV4 = ({
     enableHiding: false,
   },
 ];
+
+  // Return columns in original order
+  return allColumns;
 };

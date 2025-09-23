@@ -85,9 +85,9 @@ function VirtualizedTable({ table, columns }: VirtualizedTableProps) {
   return (
     <div ref={parentRef} className="h-full overflow-auto relative">
       <div className="min-w-[2000px]">
-        {/* Sticky header with same table structure */}
-        <div className="sticky top-0 z-20 bg-white dark:bg-gray-950">
-          <table className="w-full table-fixed">
+        {/* Sticky header with solid background */}
+        <div className="sticky top-0 z-30 bg-white dark:bg-gray-950 border-b-2 border-gray-200 dark:border-gray-700 shadow-md">
+          <table className="w-full table-fixed bg-white dark:bg-gray-950">
             <colgroup>
               {columnHeaders.map((header) => (
                 <col
@@ -98,7 +98,7 @@ function VirtualizedTable({ table, columns }: VirtualizedTableProps) {
                 />
               ))}
             </colgroup>
-            <TableHeader className="border-b-2 border-gray-200 dark:border-gray-700 shadow-sm">
+            <TableHeader className="bg-gray-50 dark:bg-gray-900">
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
@@ -258,11 +258,11 @@ export function JobTableEnhancedV3() {
     select: 45,
     company: 320,
     job_formula: 500,
-    location: 280,
-    employment_type: 240,
+    location: 180,  // Reduced from 280
+    employment_type: 100,  // Reduced from 240
     is_remote: 140,
-    salary: 260,
-    mb_status: 220,
+    salary: 120,  // Reduced from 260
+    mb_status: 100,  // Reduced from 220
     morningbrew_brands: 480,
     clicks: 90,
     cpc: 100,
