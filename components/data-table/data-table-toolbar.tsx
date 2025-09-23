@@ -104,9 +104,9 @@ export function DataTableToolbar<TData>({
           {onToggleMorningBrewView && (
             <div className="flex items-center gap-3 flex-shrink-0">
               {!showMorningBrewOnly && (
-                <span className="view-indicator ashley-view">
+                <span className="view-indicator collabwork-view">
                   <Coffee className="h-4 w-4" />
-                  Ashley View
+                  CollabWork View
                 </span>
               )}
               <Switch
