@@ -505,11 +505,28 @@ export function JobTableEnhancedV3() {
         const startTime = Date.now();
         
         console.log("Calling listJobs with search:", debouncedSearch);
+        
+        // Convert columnFilters to API format
+        const apiFilters: Record<string, unknown> = {};
+        columnFilters.forEach((filter) => {
+          if (filter.id === 'feed_source' && filter.value) {
+            // For feed_source, we need to extract the feed_id from the value
+            // The value is in format "Partner Name CPC/CPA"
+            // For now, pass the string value and handle server-side
+            apiFilters.feed_source = filter.value;
+          } else if (filter.id === 'morningbrew_brands' && filter.value) {
+            // For brands, pass the array of community IDs
+            apiFilters.community_ids = filter.value;
+          }
+        });
+        
+        console.log("Applying filters:", apiFilters);
+        
         const response = await xanoService.listJobs(
           currentPage,
           pageSize,
           debouncedSearch,
-          {} // TODO: Convert columnFilters to proper format
+          apiFilters
         );
         console.log("Search response:", response);
         
@@ -1062,7 +1079,7 @@ export function JobTableEnhancedV3() {
       },
     },
     manualPagination: true, // Enable server-side pagination
-    manualFiltering: true, // Enable server-side filtering
+    manualFiltering: false, // Disable server-side filtering - use client-side for now
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,

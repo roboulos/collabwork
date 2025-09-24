@@ -1,6 +1,6 @@
 # Ashley Feedback Issues Checklist - Critical
 
-## 📊 Latest Progress Summary (9/23 Late Evening)
+## 📊 Latest Progress Summary (9/23 Late Evening - Final Update)
 
 ### Major Accomplishments Today
 1. **Job Formula Sync Issue - FIXED** ✅
@@ -18,10 +18,47 @@
    - All views now use formatted_title or construct from clean fields
    - Backend saves formatted_title when jobs are added to Morning Brew
 
+4. **Dark Mode Logo Implementation - COMPLETED** ✅
+   - Replaced color inversion with dedicated collabworklogodark.svg
+   - Fixed logo position shifting between light/dark modes
+   - Wrapped logos in fixed-size containers for stability
+   - Both navbar and login page now use proper dark mode logos
+
+5. **"Was" Logic Enhancement - FIXED** ✅
+   - Fixed the "was" display to show frontend-generated formula
+   - Shows what the Job Formula was before editing
+   - Only displays when formatted_title differs from auto-generated version
+   - Helps users understand what changed after edits
+
+6. **Optimistic Updates Confirmed - NO LOADING SCREENS** ✅
+   - All edit operations use optimistic updates (instant UI feedback)
+   - No loading screens for Job Formula edits, priority toggles, or field updates
+   - Loading only appears for necessary operations (page changes, searches)
+   - Modern UX pattern that makes the interface feel very responsive
+
 ### Remaining Issues
 - **Search Index**: Company field added but rebuild failing due to 2.7M records
 - **Feed Filter**: Performance issues prevent server-side filtering from working
 - **Test Communities**: Still need list from Summer to remove
+- **Dropdown Filters**: Fixed in ashleyfrontend by switching to client-side filtering
+
+---
+
+## 12. ✅ COMPLETE - Filter Dropdown Fix (9/23 Final)
+
+### Issue
+- Filter dropdowns in ashleyfrontend were not applying filters when selected
+- Table was configured for server-side filtering but filters weren't being passed to API
+
+### Fix Applied
+1. **Converted columnFilters to API format** - Added logic to convert TanStack table filters to API parameters
+2. **Switched to client-side filtering** - Changed `manualFiltering: false` since server-side filtering has performance issues
+3. **Verified filter functions** - Both feed_source and morningbrew_brands columns have proper filterFn definitions
+
+### Status
+- ✅ ashleyfrontend filters now work with client-side filtering
+- ✅ brewfrontend only has status filters (no dropdown filters implemented)
+- Both projects build successfully
 
 ---
 
@@ -436,6 +473,28 @@ filters: {
 
 ---
 
+## 11. ✅ COMPLETE - UI/UX Enhancements
+
+### Dark Mode Logo Implementation (9/23 Final)
+- Used dedicated `collabworklogodark.svg` instead of CSS color inversion
+- Fixed logo position shifting between light/dark mode transitions
+- Wrapped logos in fixed-size containers for stability
+- Applied to both navbar and admin login page
+
+### "Was" Logic Enhancement (9/23 Final)
+- Fixed to show the frontend-generated formula when displaying custom formatted_title
+- Helps users understand what changed: shows edited version AND original formula
+- Only displays "was" text when formatted_title differs from auto-generated version
+- Provides clear before/after context for edits
+
+### Performance Confirmation (9/23 Final)
+- Verified all edit operations use optimistic updates (no loading screens)
+- Instant UI feedback for all user interactions
+- Loading screens only appear for necessary data fetches (page changes, searches)
+- Modern UX pattern providing responsive interface feel
+
+---
+
 ## Progress Tracking
 
 ### Completed Today
@@ -447,6 +506,9 @@ filters: {
 - ✅ **FIXED REACT ERROR #31** - Brew frontend crash resolved
 - ✅ **IDENTIFIED SEARCH ISSUE** - Missing company field in search index
 - 🔧 **APPLIED SEARCH FIX** - Added company field to index (rebuilding)
+- ✅ **DARK MODE IMPROVEMENTS** - Dedicated dark logo, fixed positioning
+- ✅ **"WAS" LOGIC** - Shows original formula when edited
+- ✅ **PERFORMANCE** - Confirmed optimistic updates working perfectly
 
 ### Currently Investigating
 - 🔍 Edit capability in admin view (checking if already enabled)
