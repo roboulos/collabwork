@@ -155,5 +155,3 @@ We welcome contributions! Please:
 This project is proprietary software for CollabWork.
 
 ---
-
-Built with passion by the CollabWork team
