@@ -6,17 +6,11 @@ This guide provides step-by-step instructions for deploying the CollabWork platf
 
 - Node.js 18+ and npm installed
 - Vercel account (free tier is sufficient)
-- Access to Xano backend credentials
 - Git repository (recommended for automatic deployments)
 
-## Required Environment Variables
+## Configuration
 
-Configure these variables before deployment:
-
-```env
-NEXT_PUBLIC_XANO_ASHLEY_BASE=https://your-instance.xano.io/api:your-api-key
-NEXT_PUBLIC_XANO_API_KEY=your-api-key
-```
+The application is pre-configured with the production API endpoint. No environment variables are required.
 
 ## Deployment Options
 
@@ -44,7 +38,7 @@ vercel --prod
    - Directory: `./`
    - Build settings: Accept defaults
 
-5. Add environment variables when prompted or via dashboard later
+5. Deploy will complete automatically
 
 ### Option 2: GitHub Integration (Recommended for Teams)
 
@@ -62,12 +56,7 @@ vercel --prod
    - Build Command: `npm run build`
    - Install Command: `npm install`
 
-6. Add environment variables:
-   - Click "Environment Variables"
-   - Add each variable with its value
-   - Select appropriate environments (Production/Preview/Development)
-
-7. Click "Deploy"
+6. Click "Deploy"
 
 ### Option 3: Manual Upload
 
@@ -79,8 +68,7 @@ npm run export  # if static export is needed
 
 2. Visit Vercel Dashboard
 3. Drag project folder to upload area
-4. Configure environment variables
-5. Deploy
+4. Deploy
 
 ## Configuration
 
@@ -96,19 +84,9 @@ npm run export  # if static export is needed
    - Name: app
    - Value: cname.vercel-dns.com
 
-### Environment Management
+### API Configuration
 
-Create different environments:
-
-**Production**
-```env
-NEXT_PUBLIC_XANO_ASHLEY_BASE=https://prod.xano.io/api:prod-key
-```
-
-**Staging**
-```env
-NEXT_PUBLIC_XANO_ASHLEY_BASE=https://staging.xano.io/api:staging-key
-```
+The application uses a hardcoded production API endpoint at `https://api.collabwork.com`. No environment-specific configuration is required.
 
 ## Deployment Verification
 
@@ -133,7 +111,6 @@ After deployment, verify:
 ## Production Best Practices
 
 ### 1. Security Checklist
-- [ ] All API keys are in environment variables
 - [ ] No sensitive data in code
 - [ ] HTTPS enforced
 - [ ] CSP headers configured
@@ -167,16 +144,10 @@ npm install
 npm run build
 ```
 
-**Environment Variables Not Loading**
-- Prefix client-side vars with `NEXT_PUBLIC_`
-- Restart dev server after changes
-- Redeploy after adding variables
-
 **API Connection Failed**
-1. Check Xano instance is running
-2. Verify API URL format
-3. Test API key in Postman
-4. Check CORS settings in Xano
+1. Check that api.collabwork.com is accessible
+2. Verify CORS settings allow your domain
+3. Check network connectivity
 
 ### Debug Commands
 ```bash

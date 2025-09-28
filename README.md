@@ -44,8 +44,6 @@ CollabWork serves as the central hub for managing job opportunities, connecting 
 
 ### Prerequisites
 - Node.js 18+ and npm
-- Xano account with configured backend
-- Environment variables (see below)
 
 ### Installation
 
@@ -60,19 +58,12 @@ cd ashleyfrontend
 npm install
 ```
 
-3. Configure environment variables:
-Create a `.env.local` file with:
-```env
-NEXT_PUBLIC_XANO_ASHLEY_BASE=your_ashley_api_url
-NEXT_PUBLIC_XANO_API_KEY=your_api_key
-```
-
-4. Run the development server:
+3. Run the development server:
 ```bash
 npm run dev
 ```
 
-5. Open [http://localhost:3000](http://localhost:3000) to view the application.
+4. Open [http://localhost:3000](http://localhost:3000) to view the application.
 
 ## 📁 Project Structure
 
