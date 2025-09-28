@@ -40,6 +40,44 @@ CollabWork serves as the central hub for managing job opportunities, connecting 
 - **Authentication**: JWT-based with secure cookie storage
 - **Deployment**: Optimized for Vercel
 
+## 🏗 Architecture
+
+### Backend Architecture
+This application uses a decoupled architecture with **Xano as the backend service layer**. Unlike traditional Next.js applications that use API routes, all backend logic is handled by Xano's platform at `api.collabwork.com`.
+
+#### Key Design Decisions:
+- **No Next.js API Routes**: Components communicate directly with Xano endpoints via the service layer
+- **Service Layer Pattern**: All API calls go through `lib/xano.ts` which provides a clean interface to the backend
+- **Direct API Integration**: The frontend makes authenticated requests directly to Xano's RESTful APIs
+- **Real-time Data**: All data operations happen server-side in Xano with immediate consistency
+
+#### Xano API Structure:
+The backend is organized in the **😊 Sept2025 MicroApp** API group, containing 44 endpoints across three main namespaces:
+
+1. **Ashley Endpoints** (`/ashley/*`):
+   - Job discovery and management
+   - Bulk operations
+   - Priority queue management
+   - Community assignments
+
+2. **Morning Brew Endpoints** (`/morningbrew/*`):
+   - Curated job operations
+   - Brand-specific filtering
+   - Click tracking and analytics
+   - Newsletter generation
+
+3. **Shared Endpoints**:
+   - Authentication (`/admin/auth/*`)
+   - Community listings (`/communities`)
+   - Public job boards (`/public/jobs/*`)
+   - Tracking links (`/t/{token}`)
+
+This architecture provides:
+- **Scalability**: Backend scales independently from frontend
+- **Security**: All business logic protected server-side
+- **Performance**: Optimized database queries and caching
+- **Flexibility**: Easy to add new endpoints without frontend deploys
+
 ## 🚀 Getting Started
 
 ### Prerequisites
