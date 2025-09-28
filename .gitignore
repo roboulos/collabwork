@@ -39,3 +39,17 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Development documentation
+*_PRD.md
+*_PLAN.md
+*_STATUS.md
+*_AUDIT.md
+*_CHECKLIST.md
+*_REPORT.md
+xano-tools-*.md
+*.code-workspace
+
+# Development analysis files
+API_TESTING_DOCUMENTATION.md
+COLLABWORK_UI_FIX_PLAN.md
