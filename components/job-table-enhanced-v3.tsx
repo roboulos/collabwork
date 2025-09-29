@@ -364,7 +364,7 @@ export function JobTableEnhancedV3() {
       }
       if (showMorningBrewOnly) {
         // Load Morning Brew curated jobs
-        const response = await xanoService.listMorningBrewJobs(1, "", 100);
+        const response = await xanoService.listMorningBrewJobs(1, "", 500);
 
         const transformedJobs = (response.items || []).map(
           (mbJob: {
@@ -428,20 +428,27 @@ export function JobTableEnhancedV3() {
                 ? mbJob.cached_posted_at
                 : baseJob.posted_at || mbJob.created_at || Date.now();
 
+            // Determine if this job has missing source data (deleted with no cache)
+            const isMissingSourceData = mbJob.is_source_deleted === true && !mbJob.title && !mbJob.company;
+
             return {
               // Spread all job_posting fields first
               ...baseJob,
               // Then override with MB-specific fields
               id: mbJob.job_posting_id,
-              company: baseJob.company || mbJob.company || "",
-              title: mbJob.title || baseJob.title || "",
+              // CRITICAL: Use mbJob data FIRST (it's cached from API response), then fallback to baseJob
+              company: mbJob.company || baseJob.company || (isMissingSourceData ? "[Source Deleted - No Data]" : "Unknown Company"),
+              title: mbJob.title || baseJob.title || (isMissingSourceData ? "[Source Deleted - No Data]" : "Untitled Position"),
               ai_title:
                 mbJob.formatted_title ||
                 baseJob.ai_title ||
+                mbJob.title ||
                 baseJob.title ||
-                "",
+                (isMissingSourceData ? "[Source Deleted - No Data]" : "Untitled Position"),
               location: mbJob.location || baseJob.location || [],
               is_morningbrew: true,
+              // Mark as source deleted to help with UI rendering
+              source_deleted: mbJob.is_source_deleted === true,
               // Get custom fields - now coming directly from API response
               custom_company_name:
                 mbJob.morningbrew?.custom_company_name ||
