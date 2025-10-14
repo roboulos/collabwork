@@ -183,4 +183,11 @@ We welcome contributions! Please:
 
 This project is proprietary software for CollabWork.
 
+## 🔄 Recent Updates
+
+**Latest Deployment** - January 2025
+- Added search-all-jobs endpoint for improved search functionality
+- Enhanced community_ids safety with optional chaining
+- Separated search and list endpoints for optimized performance
+
 ---
