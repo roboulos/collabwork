@@ -1041,7 +1041,7 @@ export const createJobsColumnsV4 = ({
     id: "morningbrew_brands",
     accessorFn: (row) => {
       if (!row.is_morningbrew || !row.morningbrew?.community_ids) return [];
-      return row.morningbrew.community_ids.map((c) => c.id.toString());
+      return row.morningbrew.community_ids.map((c) => c?.id?.toString() || '').filter(Boolean);
     },
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="MB Brands" />

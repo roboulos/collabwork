@@ -529,12 +529,20 @@ export function JobTableEnhancedV3() {
         
         console.log("Applying filters:", apiFilters);
         
-        const response = await xanoService.listJobs(
-          currentPage,
-          pageSize,
-          debouncedSearch,
-          apiFilters
-        );
+        // Use search-all-jobs endpoint when there's a search term, otherwise use list-jobs
+        const response = debouncedSearch 
+          ? await xanoService.searchAllJobs(
+              currentPage,
+              pageSize,
+              debouncedSearch,
+              apiFilters
+            )
+          : await xanoService.listJobs(
+              currentPage,
+              pageSize,
+              debouncedSearch,
+              apiFilters
+            );
         console.log("Search response:", response);
         
         const loadTime = Date.now() - startTime;

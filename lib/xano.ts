@@ -155,6 +155,19 @@ class XanoService {
     return response.data;
   }
 
+  async searchAllJobs(page: number = 1, per_page: number = 50, search?: string, filters?: Record<string, unknown>) {
+    const payload = {
+      page: page || '',
+      per_page: per_page || '',
+      search: search || '',
+      feed_source: filters?.feed_source || ''
+    };
+    console.log('XanoService.searchAllJobs - Sending payload:', payload);
+    const response = await this.axiosInstance.post('/api:microapp/ashley/search-all-jobs', payload);
+    console.log('XanoService.searchAllJobs - Response received, items:', response.data.items?.length || response.data.length);
+    return response.data;
+  }
+
   async addJob(payload: AddJobPayload) {
     const response = await this.axiosInstance.post('/api:microapp/ashley/add-job', payload);
     return response.data;
