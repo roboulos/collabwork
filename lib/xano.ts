@@ -168,6 +168,18 @@ class XanoService {
     return response.data;
   }
 
+  async filterByPartner(page: number = 1, per_page: number = 50, partner_id?: number) {
+    const payload = {
+      page: page,
+      per_page: per_page,
+      partner_id: partner_id
+    };
+    console.log('XanoService.filterByPartner - Sending payload:', payload);
+    const response = await this.axiosInstance.post('/api:microapp/ashley/filter-by-partner', payload);
+    console.log('XanoService.filterByPartner - Response received, items:', response.data.items?.length || 0);
+    return response.data;
+  }
+
   async addJob(payload: AddJobPayload) {
     const response = await this.axiosInstance.post('/api:microapp/ashley/add-job', payload);
     return response.data;

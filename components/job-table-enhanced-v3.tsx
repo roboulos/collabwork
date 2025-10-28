@@ -515,11 +515,31 @@ export function JobTableEnhancedV3() {
         
         // Convert columnFilters to API format
         const apiFilters: Record<string, unknown> = {};
+        let feedSourcePartnerId: number | undefined;
+        
+        console.log("DEBUG - columnFilters state:", JSON.stringify(columnFilters, null, 2));
+        
         columnFilters.forEach((filter) => {
+          console.log(`DEBUG - Processing filter: id="${filter.id}", value="${filter.value}", type=${typeof filter.value}, isArray=${Array.isArray(filter.value)}`);
+          
           if (filter.id === 'feed_source' && filter.value) {
-            // For feed_source, we need to extract the feed_id from the value
-            // The value is in format "Partner Name CPC/CPA"
-            // For now, pass the string value and handle server-side
+            // Extract partner_id from feed_source filter
+            // IMPORTANT: The filter value is an ARRAY, not a string!
+            // Value format: ["Appcast CPC"] or ["Appcast CPA"]
+            const filterValues = Array.isArray(filter.value) ? filter.value : [filter.value];
+            console.log(`DEBUG - filterValues array:`, filterValues);
+            
+            // Check if any selected feed source contains "Appcast"
+            const hasAppcast = filterValues.some((value: unknown) => {
+              const valueStr = String(value);
+              console.log(`DEBUG - Checking value: "${valueStr}", includes Appcast: ${valueStr.includes('Appcast')}`);
+              return valueStr.includes('Appcast');
+            });
+            
+            if (hasAppcast) {
+              feedSourcePartnerId = 6; // Appcast partner_id
+              console.log(`DEBUG - Set feedSourcePartnerId to: ${feedSourcePartnerId}`);
+            }
             apiFilters.feed_source = filter.value;
           } else if (filter.id === 'morningbrew_brands' && filter.value) {
             // For brands, pass the array of community IDs
@@ -527,23 +547,36 @@ export function JobTableEnhancedV3() {
           }
         });
         
-        console.log("Applying filters:", apiFilters);
+        console.log("DEBUG - Final apiFilters:", apiFilters);
+        console.log("DEBUG - feedSourcePartnerId:", feedSourcePartnerId);
         
-        // Use search-all-jobs endpoint when there's a search term, otherwise use list-jobs
-        const response = debouncedSearch 
-          ? await xanoService.searchAllJobs(
-              currentPage,
-              pageSize,
-              debouncedSearch,
-              apiFilters
-            )
-          : await xanoService.listJobs(
-              currentPage,
-              pageSize,
-              debouncedSearch,
-              apiFilters
-            );
-        console.log("Search response:", response);
+        // Use filterByPartner when feed_source filter is active
+        let response;
+        if (feedSourcePartnerId) {
+          console.log(`✅ Calling filterByPartner with partner_id: ${feedSourcePartnerId}, page: ${currentPage}, pageSize: ${pageSize}`);
+          response = await xanoService.filterByPartner(
+            currentPage,
+            pageSize,
+            feedSourcePartnerId
+          );
+        } else if (debouncedSearch) {
+          console.log(`🔍 Calling searchAllJobs with query: "${debouncedSearch}"`);
+          response = await xanoService.searchAllJobs(
+            currentPage,
+            pageSize,
+            debouncedSearch,
+            apiFilters
+          );
+        } else {
+          console.log(`📋 Calling listJobs (default view)`);
+          response = await xanoService.listJobs(
+            currentPage,
+            pageSize,
+            debouncedSearch,
+            apiFilters
+          );
+        }
+        console.log("API response:", response);
         
         const loadTime = Date.now() - startTime;
         console.log(`API Response - page: ${currentPage}, pageSize: ${pageSize}`);
