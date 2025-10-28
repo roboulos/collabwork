@@ -513,42 +513,19 @@ export function JobTableEnhancedV3() {
         
         console.log("Calling listJobs with search:", debouncedSearch);
         
-        // Convert columnFilters to API format
-        const apiFilters: Record<string, unknown> = {};
+        // Get feed_source filter directly from table column
         let feedSourcePartnerId: number | undefined;
+        const feedSourceFilter = table.getColumn('feed_source')?.getFilterValue() as string[] | undefined;
         
-        console.log("DEBUG - columnFilters state:", JSON.stringify(columnFilters, null, 2));
-        
-        columnFilters.forEach((filter) => {
-          console.log(`DEBUG - Processing filter: id="${filter.id}", value="${filter.value}", type=${typeof filter.value}, isArray=${Array.isArray(filter.value)}`);
-          
-          if (filter.id === 'feed_source' && filter.value) {
-            // Extract partner_id from feed_source filter
-            // IMPORTANT: The filter value is an ARRAY, not a string!
-            // Value format: ["Appcast CPC"] or ["Appcast CPA"]
-            const filterValues = Array.isArray(filter.value) ? filter.value : [filter.value];
-            console.log(`DEBUG - filterValues array:`, filterValues);
-            
-            // Check if any selected feed source contains "Appcast"
-            const hasAppcast = filterValues.some((value: unknown) => {
-              const valueStr = String(value);
-              console.log(`DEBUG - Checking value: "${valueStr}", includes Appcast: ${valueStr.includes('Appcast')}`);
-              return valueStr.includes('Appcast');
-            });
-            
-            if (hasAppcast) {
-              feedSourcePartnerId = 6; // Appcast partner_id
-              console.log(`DEBUG - Set feedSourcePartnerId to: ${feedSourcePartnerId}`);
-            }
-            apiFilters.feed_source = filter.value;
-          } else if (filter.id === 'morningbrew_brands' && filter.value) {
-            // For brands, pass the array of community IDs
-            apiFilters.community_ids = filter.value;
+        if (feedSourceFilter && feedSourceFilter.length > 0) {
+          console.log(`✅ Feed source filter active:`, feedSourceFilter);
+          // Check if any selected feed source contains "Appcast"
+          const hasAppcast = feedSourceFilter.some(value => value.includes('Appcast'));
+          if (hasAppcast) {
+            feedSourcePartnerId = 6; // Appcast partner_id
+            console.log(`✅ Detected Appcast filter, will call filterByPartner with partner_id: ${feedSourcePartnerId}`);
           }
-        });
-        
-        console.log("DEBUG - Final apiFilters:", apiFilters);
-        console.log("DEBUG - feedSourcePartnerId:", feedSourcePartnerId);
+        }
         
         // Use filterByPartner when feed_source filter is active
         let response;
@@ -564,16 +541,14 @@ export function JobTableEnhancedV3() {
           response = await xanoService.searchAllJobs(
             currentPage,
             pageSize,
-            debouncedSearch,
-            apiFilters
+            debouncedSearch
           );
         } else {
           console.log(`📋 Calling listJobs (default view)`);
           response = await xanoService.listJobs(
             currentPage,
             pageSize,
-            debouncedSearch,
-            apiFilters
+            debouncedSearch
           );
         }
         console.log("API response:", response);
@@ -1127,7 +1102,7 @@ export function JobTableEnhancedV3() {
       },
     },
     manualPagination: true, // Enable server-side pagination
-    manualFiltering: false, // Disable server-side filtering - use client-side for now
+    manualFiltering: true, // Enable server-side filtering
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
