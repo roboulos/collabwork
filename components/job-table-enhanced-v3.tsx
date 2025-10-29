@@ -255,7 +255,9 @@ export function JobTableEnhancedV3() {
     post_source: true,
     morningbrew_brands: true,
   });
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
+    { id: 'feed_source', value: ['Appcast CPA'] }
+  ]);
   const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({
     select: 45,
     company: 320,
@@ -335,7 +337,7 @@ export function JobTableEnhancedV3() {
         feed_source: true,
       }));
     }
-  }, [showMorningBrewOnly, currentPage, pageSize, debouncedSearch, isToggling]); // Added isToggling to dependencies
+  }, [showMorningBrewOnly, currentPage, pageSize, debouncedSearch, isToggling, columnFilters]); // Added columnFilters for server-side filtering
 
   const loadCommunities = async () => {
     try {
@@ -513,9 +515,9 @@ export function JobTableEnhancedV3() {
         
         console.log("Calling listJobs with search:", debouncedSearch);
         
-        // Get feed_source filter directly from table column
+        // Get feed_source filter directly from state (matches search pattern)
         let feedSourcePartnerId: number | undefined;
-        const feedSourceFilter = table.getColumn('feed_source')?.getFilterValue() as string[] | undefined;
+        const feedSourceFilter = columnFilters.find(f => f.id === 'feed_source')?.value as string[] | undefined;
         
         if (feedSourceFilter && feedSourceFilter.length > 0) {
           console.log(`✅ Feed source filter active:`, feedSourceFilter);
@@ -580,12 +582,12 @@ export function JobTableEnhancedV3() {
           }));
 
           setJobs(fixedJobs);
-          // Since Xano doesn't return itemsTotal, we'll use a different approach
-          // If there's a nextPage, we know there are more records
-          if (response.nextPage) {
+          // Use itemsTotal if available, otherwise fallback to estimation
+          if (response.itemsTotal !== undefined) {
+            setTotalItems(response.itemsTotal);
+          } else if (response.nextPage) {
             // Estimate total items based on current page and the fact there's more
-            // This ensures pagination controls work
-            setTotalItems((currentPage + 5) * pageSize); // Show at least 5 more pages
+            setTotalItems((currentPage + 5) * pageSize);
           } else {
             // We're on the last page
             setTotalItems((currentPage - 1) * pageSize + response.itemsReceived);
