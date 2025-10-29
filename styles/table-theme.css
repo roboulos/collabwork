@@ -319,17 +319,25 @@
 /* Typography Hierarchy */
 /* ============================== */
 
-/* Column headers - Fixed alignment */
+/* Column headers - Fixed alignment and dark mode visibility */
 .table-header th {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--text-tertiary);
+  letter-spacing: 0.8px;
+  color: var(--text-secondary);
   background: var(--background-subtle);
   border-bottom: 2px solid var(--border-default);
-  padding: 12px 16px;
+  padding: 14px 16px;
   vertical-align: middle;
+}
+
+/* Dark mode table headers - MUCH larger and brighter */
+.dark .table-header th {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
 }
 
 /* Table cell padding improvements */

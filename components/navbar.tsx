@@ -21,9 +21,9 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-gradient-to-b from-background/85 to-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/50">
       <div className="flex h-16 items-center justify-center">
-        <div className="flex w-full max-w-[95%] items-center px-6">
+        <div className="flex w-full max-w-[95%] items-center px-4">
           {/* Logo */}
-          <div className="mr-12 flex items-center">
+          <div className="mr-8 flex items-center">
             <Link href="/" className="flex items-center space-x-2">
               <div className="relative h-12 w-[200px]">
                 <Image 

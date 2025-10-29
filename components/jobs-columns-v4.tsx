@@ -266,7 +266,7 @@ export const createJobsColumnsV4 = ({
 
       return (
         <div
-          className={cn("group relative min-h-[40px]", isSourceDeleted && "opacity-60")}
+          className={cn("group relative h-full flex items-center", isSourceDeleted && "opacity-60")}
         >
           {isEditing ? (
             <EditingCell
@@ -277,8 +277,8 @@ export const createJobsColumnsV4 = ({
               placeholder="Enter company name"
             />
           ) : (
-            <div className="flex items-center gap-1">
-              <div className="flex-1">
+            <div className="flex items-center gap-1 w-full">
+              <div className="flex-1 flex flex-col justify-center">
                 <span className="font-semibold text-sm text-gray-900 dark:text-gray-100 leading-tight block">
                   {company || "Unknown Company"}
                 </span>
@@ -379,7 +379,7 @@ export const createJobsColumnsV4 = ({
                       job.morningbrew.formatted_title !== frontendGeneratedFormula;
 
       return (
-        <div className={cn("space-y-1.5 relative min-h-[40px]", isSourceDeleted && "opacity-60")}>
+        <div className={cn("space-y-1.5 relative min-h-[40px] flex items-center", isSourceDeleted && "opacity-60")}>
           {isEditing ? (
             <EditingCell
               value={editValue}
@@ -389,9 +389,9 @@ export const createJobsColumnsV4 = ({
               placeholder="Enter job formula (Title at Company (Remote Status))"
             />
           ) : (
-          <div className="group relative">
-            <div className="flex items-start gap-2">
-              <div className="flex-1">
+          <div className="group relative flex items-center w-full">
+            <div className="flex items-center gap-2 w-full">
+              <div className="flex-1 flex flex-col justify-center">
                 <div className="flex items-center gap-1 flex-wrap">
                   {job.application_url && !isSourceDeleted ? (
                     <a
@@ -549,15 +549,15 @@ export const createJobsColumnsV4 = ({
               placeholder="Enter location (e.g., New York, NY)"
             />
           ) : (
-          <div className="flex items-center gap-1">
-            <div className="flex-1">
-              <span className="text-sm">
+          <div className="flex items-center gap-1 h-full">
+            <div className="flex-1 flex flex-col justify-center">
+              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                 {displayLocation}
               </span>
               {job.morningbrew?.cached_location &&
                 job.morningbrew.cached_location !== location && (
-                  <span className="text-xs text-muted-foreground block">
-                    Original: {location}
+                  <span className="text-xs text-muted-foreground/70 italic block mt-0.5">
+                    was: {location}
                   </span>
                 )}
             </div>
@@ -651,14 +651,23 @@ export const createJobsColumnsV4 = ({
       return (
         <div
           className={cn(
-            "group relative",
+            "group relative flex items-center h-full",
             !job.is_morningbrew && "opacity-70",
           )}
         >
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 justify-center">
             <Badge
               variant="outline"
-              className="font-normal"
+              className={cn(
+                "badge font-medium",
+                displayType.toLowerCase().includes("full")
+                  ? "border-blue-300 text-blue-600 dark:text-blue-400 dark:border-blue-700"
+                  : displayType.toLowerCase().includes("part")
+                    ? "border-purple-300 text-purple-600 dark:text-purple-400 dark:border-purple-700"
+                    : displayType.toLowerCase().includes("contract")
+                      ? "border-orange-300 text-orange-600 dark:text-orange-400 dark:border-orange-700"
+                      : "border-gray-300 text-gray-600 dark:text-gray-400 dark:border-gray-700"
+              )}
             >
               {displayType}
             </Badge>
@@ -754,11 +763,11 @@ export const createJobsColumnsV4 = ({
       return (
         <div
           className={cn(
-            "group relative",
+            "group relative flex items-center h-full",
             !job.is_morningbrew && "opacity-70",
           )}
         >
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 justify-center">
             <Badge
               variant="outline"
               className={cn(
