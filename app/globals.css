@@ -322,3 +322,35 @@
 .shadow-interactive:hover {
   box-shadow: var(--shadow-md);
 }
+
+/* Button hover enhancements */
+.action-button:hover,
+[role="button"]:not(.primary-action-button):hover {
+  background: var(--background-hover);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 2px 4px -1px rgb(0 0 0 / 0.1),
+    0 1px 2px -1px rgb(0 0 0 / 0.06);
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark .action-button:hover,
+.dark [role="button"]:not(.primary-action-button):hover {
+  background: var(--background-hover);
+  box-shadow: 
+    0 2px 8px -2px rgb(0 0 0 / 0.4),
+    0 1px 2px -1px rgb(0 0 0 / 0.2);
+}
+
+/* Premium header with backdrop blur */
+.header-nav {
+  height: 56px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid hsl(var(--border) / 0.5);
+}
+
+.dark .header-nav {
+  background: rgba(10, 10, 10, 0.8);
+  backdrop-filter: blur(12px);
+}

@@ -42,7 +42,7 @@ export function DataTableToolbar<TData>({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <div className="flex flex-1 flex-col gap-4 sm:flex-row sm:items-center sm:gap-2">
+        <div className="flex flex-1 flex-col gap-4 sm:flex-row sm:items-center sm:gap-4">
           <Input
             placeholder="Search positions... (Press Enter)"
             value={searchValue ?? (table.getColumn(filterColumn)?.getFilterValue() as string) ?? ""}
@@ -130,7 +130,7 @@ export function DataTableToolbar<TData>({
               onClick={onAddJobs}
               disabled={!table.getFilteredSelectedRowModel().rows.length}
               size="default"
-              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white"
+              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
             >
               <Plus className="mr-2 h-4 w-4" />
               Add to Morning Brew

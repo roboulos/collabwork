@@ -79,31 +79,31 @@
 /* ============================== */
 .dark {
   /* Core Background Colors */
-  --background: #0a0a0a;
-  --background-subtle: #141414;
-  --background-muted: #1a1a1a;
-  --background-hover: #1f1f1f;
-  --background-active: #262626;
+  --background: #09090b;
+  --background-subtle: #18181b;
+  --background-muted: #27272a;
+  --background-hover: #2c2c2f;
+  --background-active: #323235;
   
   /* Selected States - Subtle Blue Tint */
   --background-selected: #1a2332;
   --background-selected-hover: #1e2a3d;
   --background-selected-active: #243447;
   
-  /* Border System */
+  /* Border System - Softer for dark mode */
   --border-default: #27272a;
-  --border-subtle: #1a1a1a;
+  --border-subtle: #1f1f23;
   --border-selected: #60a5fa;
   --border-focus: #3b82f6;
   --border-hover: #3f3f46;
   
   /* Text Hierarchy - Improved contrast for dark mode */
-  --text-primary: #f9fafb;
-  --text-secondary: #d1d5db; /* Improved from #9ca3af for better contrast */
-  --text-tertiary: #9ca3af; /* Improved from #6b7280 */
-  --text-muted: #6b7280; /* Improved from #525252 */
+  --text-primary: #fafafa;
+  --text-secondary: #e4e4e7;
+  --text-tertiary: #a1a1aa;
+  --text-muted: #71717a;
   --text-link: #60a5fa;
-  --text-link-hover: #93bbfc;
+  --text-link-hover: #93c5fd;
   
   /* Brand Accents */
   --accent-ashley: #60a5fa;
@@ -154,7 +154,7 @@
   position: relative;
   cursor: pointer;
   /* FIXED HEIGHT with flexibility for content */
-  min-height: 52px;
+  min-height: 60px;
   height: auto; /* Allow height to expand if needed */
 }
 
@@ -165,12 +165,11 @@
 
 /* Selected state - Using box-shadow instead of border */
 .job-row[data-selected="true"] {
-  background: var(--background-selected) !important;
-  /* Inset box-shadow doesn't affect layout */
-  box-shadow: inset 3px 0 0 var(--border-selected);
-  /* Outline for additional visibility without layout shift */
-  outline: 1px solid var(--border-selected);
-  outline-offset: -1px; /* Keep outline inside the element */
+  background: hsl(217, 91%, 97%) !important;
+  box-shadow: 
+    inset 3px 0 0 hsl(217, 91%, 60%),
+    inset 0 0 0 1px hsl(217, 91%, 90%);
+  outline: none;
 }
 
 .job-row[data-selected="true"]:hover {
@@ -179,7 +178,10 @@
 
 /* Remove aggressive blue background in dark mode */
 .dark .job-row[data-selected="true"] {
-  background: #1e293b !important; /* Much subtler selected background */
+  background: hsl(217, 45%, 12%) !important;
+  box-shadow: 
+    inset 3px 0 0 hsl(217, 91%, 60%),
+    inset 0 0 0 1px hsl(217, 45%, 18%);
 }
 
 /* Priority indicator - Using box-shadow layers */
@@ -330,6 +332,20 @@
   vertical-align: middle;
 }
 
+/* Table cell padding improvements */
+.table-cell,
+[role="cell"] {
+  padding: 12px 16px;
+}
+
+.table-cell:first-child {
+  padding-left: 20px;
+}
+
+.table-cell:last-child {
+  padding-right: 20px;
+}
+
 /* Fix sort arrow alignment */
 .table-header th svg {
   vertical-align: middle;
@@ -338,9 +354,10 @@
 
 /* Primary content - job titles */
 .job-title {
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 15px;
+  font-weight: 600;
   color: var(--text-link);
+  letter-spacing: -0.01em;
   text-decoration: none;
   transition: color var(--transition-fast) ease;
 }
@@ -355,13 +372,14 @@
   font-size: 13px;
   font-weight: 500;
   color: var(--text-primary);
+  letter-spacing: 0.002em;
 }
 
 /* Tertiary content - metadata */
 .job-meta {
   font-size: 12px;
   color: var(--text-secondary);
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 /* ============================== */
@@ -438,18 +456,22 @@ input[type="checkbox"]:focus-visible {
   width: 56px !important;
   height: 28px !important;
   border-radius: 14px;
-  background: var(--background-muted);
-  border: 2px solid var(--border-default);
+  background: #e5e7eb;
+  border: 2px solid #d1d5db;
   cursor: pointer;
-  transition: all var(--transition-slow) cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.06);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 
+    inset 0 2px 4px 0 rgb(0 0 0 / 0.06),
+    0 1px 2px 0 rgb(0 0 0 / 0.05);
   /* Removed hard-coded margin - use flex gap in parent container instead */
 }
 
 .view-toggle[data-state="checked"] {
-  background: var(--accent-morningbrew);
-  border-color: var(--accent-morningbrew);
-  box-shadow: 0 0 12px 0 rgba(245, 158, 11, 0.3);
+  background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+  border-color: #ea580c;
+  box-shadow: 
+    0 0 0 3px rgba(251, 146, 60, 0.1),
+    0 0 12px 0 rgba(245, 158, 11, 0.4);
 }
 
 /* Removed pseudo-element thumb - now handled by React component */
