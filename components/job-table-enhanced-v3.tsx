@@ -320,9 +320,6 @@ export function JobTableEnhancedV3() {
 
   useEffect(() => {
     if (!isToggling && feedSourcesLoaded) {
-      // Clear cached data when switching views for fresh load
-      setJobs([]);
-      setTotalItems(0);
       loadJobs();
     }
     // Update column visibility based on view
@@ -345,7 +342,8 @@ export function JobTableEnhancedV3() {
         feed_source: true,
       }));
     }
-  }, [showMorningBrewOnly, currentPage, pageSize, debouncedSearch, isToggling, columnFilters, feedSourcesLoaded]); // Added columnFilters for server-side filtering
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showMorningBrewOnly, currentPage, pageSize, debouncedSearch, isToggling, columnFilters, feedSourcesLoaded]);
 
   const loadCommunities = async () => {
     try {
