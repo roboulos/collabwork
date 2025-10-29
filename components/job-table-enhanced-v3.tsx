@@ -256,7 +256,7 @@ export function JobTableEnhancedV3() {
     morningbrew_brands: true,
   });
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
-    { id: 'feed_source', value: ['Appcast CPA'] }
+    { id: 'feed_source', value: ['Appcast'] }
   ]);
   const [allFeedSources, setAllFeedSources] = useState<Array<{ value: string; label: string }>>([]);
   const [partnerIdMap, setPartnerIdMap] = useState<Map<string, number>>(new Map());
@@ -368,14 +368,9 @@ export function JobTableEnhancedV3() {
         
         partners.forEach((partner: { id?: number; partner_name?: string; attributes?: { job_feed_partner?: Array<{ name: string }> } }) => {
           if (partner.partner_name && partner.attributes?.job_feed_partner && partner.id) {
-            // For partners with job feeds, add both CPA and CPC variants
-            const cpaKey = `${partner.partner_name} CPA`;
-            const cpcKey = `${partner.partner_name} CPC`;
-            feedSourcesSet.add(cpaKey);
-            feedSourcesSet.add(cpcKey);
-            // Map both CPA and CPC to the same partner_id
-            idMap.set(cpaKey, partner.id);
-            idMap.set(cpcKey, partner.id);
+            // Add partner name without CPA/CPC suffix (filters both payment types)
+            feedSourcesSet.add(partner.partner_name);
+            idMap.set(partner.partner_name, partner.id);
           }
         });
         
