@@ -243,6 +243,11 @@ class XanoService {
     return response.data;
   }
 
+  async listAllFeedSources() {
+    const response = await this.axiosInstance.get('/api:microapp/ashley/list-all-feed-sources');
+    return response.data;
+  }
+
   // Shared tracking link method
   async generateTrackingLink(jobId: number, communityId: number) {
     const response = await this.axiosInstance.post('/api:microapp/shared/generate-tracking-link', {

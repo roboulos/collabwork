@@ -258,6 +258,9 @@ export function JobTableEnhancedV3() {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
     { id: 'feed_source', value: ['Appcast CPA'] }
   ]);
+  const [allFeedSources, setAllFeedSources] = useState<Array<{ value: string; label: string }>>([]);
+  const [partnerIdMap, setPartnerIdMap] = useState<Map<string, number>>(new Map());
+  const [feedSourcesLoaded, setFeedSourcesLoaded] = useState(false);
   const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({
     select: 45,
     company: 320,
@@ -302,6 +305,11 @@ export function JobTableEnhancedV3() {
 
   useEffect(() => {
     loadCommunities();
+    const initFeedSources = async () => {
+      await loadAllFeedSources();
+      setFeedSourcesLoaded(true);
+    };
+    initFeedSources();
   }, []);
 
   // Handle search on Enter key
@@ -311,7 +319,7 @@ export function JobTableEnhancedV3() {
   };
 
   useEffect(() => {
-    if (!isToggling) {
+    if (!isToggling && feedSourcesLoaded) {
       // Clear cached data when switching views for fresh load
       setJobs([]);
       setTotalItems(0);
@@ -337,7 +345,7 @@ export function JobTableEnhancedV3() {
         feed_source: true,
       }));
     }
-  }, [showMorningBrewOnly, currentPage, pageSize, debouncedSearch, isToggling, columnFilters]); // Added columnFilters for server-side filtering
+  }, [showMorningBrewOnly, currentPage, pageSize, debouncedSearch, isToggling, columnFilters, feedSourcesLoaded]); // Added columnFilters for server-side filtering
 
   const loadCommunities = async () => {
     try {
@@ -348,6 +356,45 @@ export function JobTableEnhancedV3() {
       setToast({ message: "Failed to load communities", type: "error" });
       // Set some default communities to prevent empty state
       setCommunities([]);
+    }
+  };
+
+  const loadAllFeedSources = async () => {
+    try {
+      const partners = await xanoService.listAllFeedSources();
+      if (Array.isArray(partners)) {
+        const feedSourcesSet = new Set<string>();
+        const idMap = new Map<string, number>();
+        
+        partners.forEach((partner: { id?: number; partner_name?: string; attributes?: { job_feed_partner?: Array<{ name: string }> } }) => {
+          if (partner.partner_name && partner.attributes?.job_feed_partner && partner.id) {
+            // For partners with job feeds, add both CPA and CPC variants
+            const cpaKey = `${partner.partner_name} CPA`;
+            const cpcKey = `${partner.partner_name} CPC`;
+            feedSourcesSet.add(cpaKey);
+            feedSourcesSet.add(cpcKey);
+            // Map both CPA and CPC to the same partner_id
+            idMap.set(cpaKey, partner.id);
+            idMap.set(cpcKey, partner.id);
+          }
+        });
+        
+        const feedOptions = Array.from(feedSourcesSet)
+          .map((feed) => ({
+            value: feed,
+            label: feed,
+          }))
+          .sort((a, b) => a.label.localeCompare(b.label));
+        
+        setAllFeedSources(feedOptions);
+        setPartnerIdMap(idMap);
+        console.log(`Loaded ${feedOptions.length} feed source options from ${partners.length} partners`);
+        console.log('Partner ID mapping:', Object.fromEntries(idMap));
+      }
+    } catch (error) {
+      console.error("Error loading feed sources:", error);
+      setAllFeedSources([]);
+      setPartnerIdMap(new Map());
     }
   };
 
@@ -521,11 +568,13 @@ export function JobTableEnhancedV3() {
         
         if (feedSourceFilter && feedSourceFilter.length > 0) {
           console.log(`✅ Feed source filter active:`, feedSourceFilter);
-          // Check if any selected feed source contains "Appcast"
-          const hasAppcast = feedSourceFilter.some(value => value.includes('Appcast'));
-          if (hasAppcast) {
-            feedSourcePartnerId = 6; // Appcast partner_id
-            console.log(`✅ Detected Appcast filter, will call filterByPartner with partner_id: ${feedSourcePartnerId}`);
+          // Get the first selected feed source and look up its partner_id
+          const selectedFeed = feedSourceFilter[0];
+          feedSourcePartnerId = partnerIdMap.get(selectedFeed);
+          if (feedSourcePartnerId) {
+            console.log(`✅ Detected feed "${selectedFeed}", will call filterByPartner with partner_id: ${feedSourcePartnerId}`);
+          } else {
+            console.warn(`⚠️ No partner_id found for feed "${selectedFeed}"`);
           }
         }
         
@@ -1174,22 +1223,7 @@ export function JobTableEnhancedV3() {
                 value: c.id.toString(),
                 label: c.community_name,
               }))}
-              feedOptions={(() => {
-                const feedSources = new Set<string>();
-                jobs.forEach((job) => {
-                  const partnerName = job.single_partner?.partner_name;
-                  const paymentType = (job.cpa || 0) > 0 ? "CPA" : "CPC";
-                  if (partnerName) {
-                    feedSources.add(`${partnerName} ${paymentType}`);
-                  }
-                });
-                return Array.from(feedSources)
-                  .map((feed) => ({
-                    value: feed,
-                    label: feed,
-                  }))
-                  .sort((a, b) => a.label.localeCompare(b.label));
-              })()}
+              feedOptions={allFeedSources}
               showMorningBrewOnly={showMorningBrewOnly}
               onToggleMorningBrewView={(value) => {
                 setIsToggling(true);
