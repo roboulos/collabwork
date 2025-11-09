@@ -596,14 +596,24 @@ export function JobTableEnhancedV3() {
         // Always use searchAllJobs when there's a search query
         let response;
         if (debouncedSearch) {
-          // Always search ALL jobs when using search bar (ignore feed_source filter)
-          console.log(`🔍 Calling searchAllJobs with query: "${debouncedSearch}" (searching ALL sources)`);
-          response = await xanoService.searchAllJobs(
-            currentPage,
-            pageSize,
-            debouncedSearch,
-            { feed_source: '' } // Always use empty string to search ALL sources
-          );
+          // Search with feed filter if one is active
+          if (feedSourcePartnerId) {
+            console.log(`🔍 Calling searchAllJobs with query: "${debouncedSearch}" filtered by partner_id: ${feedSourcePartnerId}`);
+            response = await xanoService.searchAllJobs(
+              currentPage,
+              pageSize,
+              debouncedSearch,
+              { feed_source: feedSourcePartnerId.toString() }
+            );
+          } else {
+            console.log(`🔍 Calling searchAllJobs with query: "${debouncedSearch}" (searching ALL sources)`);
+            response = await xanoService.searchAllJobs(
+              currentPage,
+              pageSize,
+              debouncedSearch,
+              { feed_source: '' } // Search ALL sources when no filter is selected
+            );
+          }
         } else if (feedSourcePartnerId) {
           console.log(`✅ Calling filterByPartner with partner_id: ${feedSourcePartnerId}, page: ${currentPage}, pageSize: ${pageSize}`);
           response = await xanoService.filterByPartner(
