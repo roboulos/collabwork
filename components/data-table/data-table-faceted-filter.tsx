@@ -31,12 +31,14 @@ interface Props<TData, TValue> {
     icon?: React.ComponentType<{ className?: string }>
     color?: string
   }[]
+  singleSelect?: boolean
 }
 
 export function DataTableFacetedFilter<TData, TValue>({
   column,
   title,
   options,
+  singleSelect = false,
 }: Props<TData, TValue>) {
   const facets = column?.getFacetedUniqueValues()
   const selectedValues = new Set(column?.getFilterValue() as string[])
@@ -94,15 +96,25 @@ export function DataTableFacetedFilter<TData, TValue>({
                   <CommandItem
                     key={option.value}
                     onSelect={() => {
-                      if (isSelected) {
-                        selectedValues.delete(option.value)
+                      if (singleSelect) {
+                        // Single select mode: toggle or set to this value
+                        if (isSelected) {
+                          column?.setFilterValue(undefined)
+                        } else {
+                          column?.setFilterValue([option.value])
+                        }
                       } else {
-                        selectedValues.add(option.value)
+                        // Multi-select mode: original behavior
+                        if (isSelected) {
+                          selectedValues.delete(option.value)
+                        } else {
+                          selectedValues.add(option.value)
+                        }
+                        const filterValues = Array.from(selectedValues)
+                        column?.setFilterValue(
+                          filterValues.length ? filterValues : undefined
+                        )
                       }
-                      const filterValues = Array.from(selectedValues)
-                      column?.setFilterValue(
-                        filterValues.length ? filterValues : undefined
-                      )
                     }}
                   >
                     <div

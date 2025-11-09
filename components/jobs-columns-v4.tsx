@@ -810,7 +810,24 @@ export const createJobsColumnsV4 = ({
   {
     id: "feed_source",
     accessorFn: (row) => {
-      const partnerName = row.single_partner?.partner_name;
+      // Try to get partner name from relationship first
+      let partnerName = row.single_partner?.partner_name;
+
+      // If no partner name, try to map from feed_id
+      if (!partnerName && row.feed_id) {
+        const feedIdMap: Record<number, string> = {
+          7: "Appcast",
+          8: "Appcast",
+          10: "Veritone",
+          5: "Veritone",
+          19: "Buyer",
+          9: "Buyer",
+          24: "Direct Employers Association",
+          23: "Direct Emp",
+        };
+        partnerName = feedIdMap[row.feed_id];
+      }
+
       const paymentType = (row.cpa || 0) > 0 ? "CPA" : "CPC";
       return `${partnerName || "Unknown"} ${paymentType}`;
     },
@@ -819,7 +836,25 @@ export const createJobsColumnsV4 = ({
     ),
     cell: ({ row }) => {
       const job = row.original;
-      const partnerName = job.single_partner?.partner_name;
+
+      // Try to get partner name from relationship first
+      let partnerName = job.single_partner?.partner_name;
+
+      // If no partner name, try to map from feed_id
+      if (!partnerName && job.feed_id) {
+        const feedIdMap: Record<number, string> = {
+          7: "Appcast",
+          8: "Appcast",
+          10: "Veritone",
+          5: "Veritone",
+          19: "Buyer",
+          9: "Buyer",
+          24: "Direct Employers Association",
+          23: "Direct Emp",
+        };
+        partnerName = feedIdMap[job.feed_id];
+      }
+
       const paymentType = (job.cpa || 0) > 0 ? "CPA" : "CPC";
 
       return (

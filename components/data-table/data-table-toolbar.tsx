@@ -80,6 +80,7 @@ export function DataTableToolbar<TData>({
               column={table.getColumn("feed_source")}
               title="Feed Source"
               options={feedOptions}
+              singleSelect={true}
             />
           )}
           {isFiltered && (
