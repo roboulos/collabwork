@@ -364,28 +364,37 @@ export function JobTableEnhancedV3() {
         const feedSourcesSet = new Set<string>();
         const idMap = new Map<string, number>();
 
-        partners.forEach((partner: { id?: number; partner_name?: string; attributes?: { job_feed_partner?: Array<{ name: string }> } }) => {
+        partners.forEach((partner: {
+          id?: number;
+          partner_name?: string;
+          attributes?: {
+            job_feed_partner?: Array<{
+              name: string;
+              feed_id?: number;
+            }>
+          }
+        }) => {
           if (partner.partner_name && partner.attributes?.job_feed_partner && partner.id) {
             const feeds = partner.attributes.job_feed_partner;
 
             // Check if partner has both CPC and CPA feeds
-            const hasCPC = feeds.some(f => f.name?.toLowerCase().includes('cpc'));
-            const hasCPA = feeds.some(f => f.name?.toLowerCase().includes('cpa'));
+            const cpcFeed = feeds.find(f => f.name?.toLowerCase().includes('cpc'));
+            const cpaFeed = feeds.find(f => f.name?.toLowerCase().includes('cpa'));
 
-            if (hasCPC && hasCPA) {
-              // Add separate options for CPC and CPA
+            if (cpcFeed && cpaFeed) {
+              // Add separate options for CPC and CPA with their feed_ids
               feedSourcesSet.add(`${partner.partner_name} CPC`);
               feedSourcesSet.add(`${partner.partner_name} CPA`);
-              idMap.set(`${partner.partner_name} CPC`, partner.id);
-              idMap.set(`${partner.partner_name} CPA`, partner.id);
-            } else if (hasCPC) {
+              idMap.set(`${partner.partner_name} CPC`, cpcFeed.feed_id || partner.id);
+              idMap.set(`${partner.partner_name} CPA`, cpaFeed.feed_id || partner.id);
+            } else if (cpcFeed) {
               // Only CPC feed exists
               feedSourcesSet.add(`${partner.partner_name} CPC`);
-              idMap.set(`${partner.partner_name} CPC`, partner.id);
-            } else if (hasCPA) {
+              idMap.set(`${partner.partner_name} CPC`, cpcFeed.feed_id || partner.id);
+            } else if (cpaFeed) {
               // Only CPA feed exists
               feedSourcesSet.add(`${partner.partner_name} CPA`);
-              idMap.set(`${partner.partner_name} CPA`, partner.id);
+              idMap.set(`${partner.partner_name} CPA`, cpaFeed.feed_id || partner.id);
             } else {
               // No CPC/CPA designation, use partner name only
               feedSourcesSet.add(partner.partner_name);
@@ -404,7 +413,7 @@ export function JobTableEnhancedV3() {
         setAllFeedSources(feedOptions);
         setPartnerIdMap(idMap);
         console.log(`Loaded ${feedOptions.length} feed source options from ${partners.length} partners`);
-        console.log('Partner ID mapping:', Object.fromEntries(idMap));
+        console.log('Feed ID mapping (now using feed_id for CPC/CPA):', Object.fromEntries(idMap));
       }
     } catch (error) {
       console.error("Error loading feed sources:", error);
@@ -598,20 +607,20 @@ export function JobTableEnhancedV3() {
         if (debouncedSearch) {
           // Search with feed filter if one is active
           if (feedSourcePartnerId) {
-            console.log(`🔍 Calling searchAllJobs with query: "${debouncedSearch}" filtered by partner_id: ${feedSourcePartnerId}`);
+            console.log(`🔍 Calling searchAllJobs with query: "${debouncedSearch}" filtered by feed_id: ${feedSourcePartnerId}`);
             response = await xanoService.searchAllJobs(
               currentPage,
               pageSize,
               debouncedSearch,
-              { feed_source: feedSourcePartnerId.toString() }
+              feedSourcePartnerId // Pass feed_id directly
             );
           } else {
             console.log(`🔍 Calling searchAllJobs with query: "${debouncedSearch}" (searching ALL sources)`);
             response = await xanoService.searchAllJobs(
               currentPage,
               pageSize,
-              debouncedSearch,
-              { feed_source: '' } // Search ALL sources when no filter is selected
+              debouncedSearch
+              // No feed_id = search all sources
             );
           }
         } else if (feedSourcePartnerId) {

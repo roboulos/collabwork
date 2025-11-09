@@ -155,12 +155,12 @@ class XanoService {
     return response.data;
   }
 
-  async searchAllJobs(page: number = 1, per_page: number = 50, search?: string, filters?: Record<string, unknown>) {
+  async searchAllJobs(page: number = 1, per_page: number = 50, search?: string, feed_id?: number) {
     const payload = {
       page: page || '',
       per_page: per_page || '',
       search: search || '',
-      feed_source: filters?.feed_source || ''
+      feed_id: feed_id || undefined
     };
     console.log('XanoService.searchAllJobs - Sending payload:', payload);
     const response = await this.axiosInstance.post('/api:microapp/ashley/search-all-jobs', payload);
@@ -168,13 +168,13 @@ class XanoService {
     return response.data;
   }
 
-  async filterByPartner(page: number = 1, per_page: number = 50, partner_id?: number) {
+  async filterByPartner(page: number = 1, per_page: number = 50, feed_id?: number) {
     const payload = {
       page: page,
       per_page: per_page,
-      partner_id: partner_id
+      feed_id: feed_id
     };
-    console.log('XanoService.filterByPartner - Sending payload:', payload);
+    console.log('XanoService.filterByPartner - Sending payload (using feed_id):', payload);
     const response = await this.axiosInstance.post('/api:microapp/ashley/filter-by-partner', payload);
     console.log('XanoService.filterByPartner - Response received, items:', response.data.items?.length || 0);
     return response.data;
