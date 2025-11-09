@@ -256,7 +256,7 @@ export function JobTableEnhancedV3() {
     morningbrew_brands: true,
   });
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
-    { id: 'feed_source', value: ['Appcast'] }
+    { id: 'feed_source', value: ['Appcast CPC'] }
   ]);
   const [allFeedSources, setAllFeedSources] = useState<Array<{ value: string; label: string }>>([]);
   const [partnerIdMap, setPartnerIdMap] = useState<Map<string, number>>(new Map());
@@ -363,22 +363,44 @@ export function JobTableEnhancedV3() {
       if (Array.isArray(partners)) {
         const feedSourcesSet = new Set<string>();
         const idMap = new Map<string, number>();
-        
+
         partners.forEach((partner: { id?: number; partner_name?: string; attributes?: { job_feed_partner?: Array<{ name: string }> } }) => {
           if (partner.partner_name && partner.attributes?.job_feed_partner && partner.id) {
-            // Add partner name without CPA/CPC suffix (filters both payment types)
-            feedSourcesSet.add(partner.partner_name);
-            idMap.set(partner.partner_name, partner.id);
+            const feeds = partner.attributes.job_feed_partner;
+
+            // Check if partner has both CPC and CPA feeds
+            const hasCPC = feeds.some(f => f.name?.toLowerCase().includes('cpc'));
+            const hasCPA = feeds.some(f => f.name?.toLowerCase().includes('cpa'));
+
+            if (hasCPC && hasCPA) {
+              // Add separate options for CPC and CPA
+              feedSourcesSet.add(`${partner.partner_name} CPC`);
+              feedSourcesSet.add(`${partner.partner_name} CPA`);
+              idMap.set(`${partner.partner_name} CPC`, partner.id);
+              idMap.set(`${partner.partner_name} CPA`, partner.id);
+            } else if (hasCPC) {
+              // Only CPC feed exists
+              feedSourcesSet.add(`${partner.partner_name} CPC`);
+              idMap.set(`${partner.partner_name} CPC`, partner.id);
+            } else if (hasCPA) {
+              // Only CPA feed exists
+              feedSourcesSet.add(`${partner.partner_name} CPA`);
+              idMap.set(`${partner.partner_name} CPA`, partner.id);
+            } else {
+              // No CPC/CPA designation, use partner name only
+              feedSourcesSet.add(partner.partner_name);
+              idMap.set(partner.partner_name, partner.id);
+            }
           }
         });
-        
+
         const feedOptions = Array.from(feedSourcesSet)
           .map((feed) => ({
             value: feed,
             label: feed,
           }))
           .sort((a, b) => a.label.localeCompare(b.label));
-        
+
         setAllFeedSources(feedOptions);
         setPartnerIdMap(idMap);
         console.log(`Loaded ${feedOptions.length} feed source options from ${partners.length} partners`);
@@ -571,21 +593,23 @@ export function JobTableEnhancedV3() {
           }
         }
         
-        // Use filterByPartner when feed_source filter is active
+        // Always use searchAllJobs when there's a search query
         let response;
-        if (feedSourcePartnerId) {
+        if (debouncedSearch) {
+          // Always search ALL jobs when using search bar (ignore feed_source filter)
+          console.log(`🔍 Calling searchAllJobs with query: "${debouncedSearch}" (searching ALL sources)`);
+          response = await xanoService.searchAllJobs(
+            currentPage,
+            pageSize,
+            debouncedSearch,
+            { feed_source: '' } // Always use empty string to search ALL sources
+          );
+        } else if (feedSourcePartnerId) {
           console.log(`✅ Calling filterByPartner with partner_id: ${feedSourcePartnerId}, page: ${currentPage}, pageSize: ${pageSize}`);
           response = await xanoService.filterByPartner(
             currentPage,
             pageSize,
             feedSourcePartnerId
-          );
-        } else if (debouncedSearch) {
-          console.log(`🔍 Calling searchAllJobs with query: "${debouncedSearch}"`);
-          response = await xanoService.searchAllJobs(
-            currentPage,
-            pageSize,
-            debouncedSearch
           );
         } else {
           console.log(`📋 Calling listJobs (default view)`);
