@@ -303,6 +303,9 @@ export function JobTableEnhancedV3() {
   } | null>(null);
   const [editValue, setEditValue] = useState("");
 
+  // Copy link loading state
+  const [copyingLinkJobId, setCopyingLinkJobId] = useState<number | null>(null);
+
   useEffect(() => {
     loadCommunities();
     const initFeedSources = async () => {
@@ -1043,7 +1046,7 @@ export function JobTableEnhancedV3() {
     // Use formatted_title if available, otherwise use job.title (NOT ai_title)
     const title = job.morningbrew?.formatted_title || job.title || "Untitled Position";
     const company = job.custom_company_name || job.company;
-    
+
     // Determine work type - check custom field first, then fallback to is_remote
     let workType = "On-site"; // default
     if (job.morningbrew?.custom_is_remote) {
@@ -1056,9 +1059,53 @@ export function JobTableEnhancedV3() {
 
     try {
       await navigator.clipboard.writeText(formattedText);
-      setToast({ message: "Copied to clipboard", type: "success" });
+      setToast({ message: "Job text copied to clipboard", type: "success" });
     } catch {
       setToast({ message: "Failed to copy", type: "error" });
+    }
+  }, []);
+
+  const handleCopyLink = React.useCallback(async (job: JobPosting) => {
+    try {
+      // Set loading state
+      setCopyingLinkJobId(job.id);
+
+      // Generate shareable tracking link
+      const response = await xanoService.generateShareableLink(job.id.toString());
+
+      // Get the tracking link from the response
+      const trackingLink = response.url || response.shareable_link || response.tracking_link;
+      if (!trackingLink) {
+        throw new Error('No tracking link returned');
+      }
+
+      // Try modern clipboard API first, fallback to legacy method
+      try {
+        await navigator.clipboard.writeText(trackingLink);
+      } catch (clipboardError) {
+        // Fallback for when clipboard API fails (document not focused)
+        const textArea = document.createElement('textarea');
+        textArea.value = trackingLink;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+          document.execCommand('copy');
+        } finally {
+          document.body.removeChild(textArea);
+        }
+      }
+
+      setToast({ message: "Tracking link copied to clipboard!", type: "success" });
+    } catch (error) {
+      console.error('Failed to generate or copy link:', error);
+      setToast({ message: "Failed to generate tracking link", type: "error" });
+    } finally {
+      // Clear loading state
+      setCopyingLinkJobId(null);
     }
   }, []);
 
@@ -1152,12 +1199,14 @@ export function JobTableEnhancedV3() {
         onRemoveFromMorningBrew: handleRemoveFromMorningBrew,
         onRemoveFromCommunity: handleRemoveFromCommunity,
         onCopyJob: handleCopyJobText,
+        onCopyLink: handleCopyLink,
         onStartEdit: handleStartEdit,
         editingCell,
         editValue,
         setEditValue,
         onSaveEdit: handleSaveEdit,
         onCancelEdit: handleCancelEdit,
+        copyingLinkJobId,
       }),
     [
       editingCell,
@@ -1166,10 +1215,12 @@ export function JobTableEnhancedV3() {
       handleRemoveFromMorningBrew,
       handleRemoveFromCommunity,
       handleCopyJobText,
+      handleCopyLink,
       handleStartEdit,
       handleSaveEdit,
       handleCancelEdit,
       setEditValue,
+      copyingLinkJobId,
     ],
   );
 

@@ -280,6 +280,14 @@ class XanoService {
       throw error;
     }
   }
+
+  // Generate shareable tracking link for any job
+  async generateShareableLink(jobPostingId: string) {
+    const response = await this.axiosInstance.post('/api:microapp/morningbrew/generate-shareable-link', {
+      job_posting_id: parseInt(jobPostingId),
+    });
+    return response.data;
+  }
 }
 
 export const xanoService = new XanoService();

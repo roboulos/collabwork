@@ -11,6 +11,8 @@ import {
   Sparkles,
   Plus,
   Pencil,
+  FileText,
+  Loader2,
 } from "lucide-react";
 
 import { DataTableColumnHeader } from "./data-table/data-table-column-header";
@@ -33,12 +35,14 @@ interface JobsColumnsProps {
   onRemoveFromMorningBrew: (jobId: number) => void;
   onRemoveFromCommunity?: (jobId: number, communityId: number) => void;
   onCopyJob: (job: JobPosting) => void;
+  onCopyLink: (job: JobPosting) => void;
   onStartEdit: (jobId: number, field: string, currentValue: string) => void;
   editingCell: { jobId: number; field: string } | null;
   editValue: string;
   setEditValue: (value: string) => void;
   onSaveEdit: () => void;
   onCancelEdit: () => void;
+  copyingLinkJobId: number | null;
 }
 
 // Reusable editing component for cleaner AG Grid-like experience
@@ -215,12 +219,14 @@ export const createJobsColumnsV4 = ({
   onRemoveFromMorningBrew,
   onRemoveFromCommunity,
   onCopyJob,
+  onCopyLink,
   onStartEdit,
   editingCell,
   editValue,
   setEditValue,
   onSaveEdit,
   onCancelEdit,
+  copyingLinkJobId,
 }: JobsColumnsProps): ColumnDef<JobPosting>[] => {
   console.log("createJobsColumnsV4 called with onStartEdit:", typeof onStartEdit, onStartEdit);
   
@@ -394,18 +400,25 @@ export const createJobsColumnsV4 = ({
               <div className="flex-1 flex flex-col justify-center">
                 <div className="flex items-center gap-1 flex-wrap">
                   {job.application_url && !isSourceDeleted ? (
-                    <a
-                      href={job.application_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline text-sm"
-                      onClick={(e) => e.stopPropagation()}
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline text-sm cursor-pointer bg-transparent border-0 p-0 font-inherit text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onCopyLink(job);
+                      }}
+                      disabled={copyingLinkJobId === job.id}
+                      title="Click to copy shareable tracking link"
                     >
                       <span className="leading-tight">
                         {displayFormula}
                       </span>
-                      <ExternalLink className="h-3 w-3 flex-shrink-0" />
-                    </a>
+                      {copyingLinkJobId === job.id ? (
+                        <Loader2 className="h-3 w-3 flex-shrink-0 animate-spin" />
+                      ) : (
+                        <Copy className="h-3 w-3 flex-shrink-0" />
+                      )}
+                    </button>
                   ) : (
                     <span
                       className={cn(
@@ -437,10 +450,10 @@ export const createJobsColumnsV4 = ({
                         }}
                         aria-label="Copy job text for newsletter"
                       >
-                        <Copy className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400" />
+                        <FileText className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400" />
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent>Copy for newsletter</TooltipContent>
+                    <TooltipContent>Copy text for newsletter</TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
                 {job.is_morningbrew && (
