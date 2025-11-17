@@ -86,8 +86,8 @@ function VirtualizedTable({ table, columns }: VirtualizedTableProps) {
     <div ref={parentRef} className="h-full overflow-auto relative">
       <div className="min-w-[2000px]">
         {/* Sticky header with solid background */}
-        <div className="sticky top-0 z-30 bg-white dark:bg-gray-950 border-b-2 border-gray-200 dark:border-gray-700 shadow-md">
-          <table className="w-full table-fixed bg-white dark:bg-gray-950">
+        <div className="sticky top-0 z-30 bg-white dark:bg-gray-950 shadow-md">
+          <table className="w-full table-fixed bg-white dark:bg-gray-950 border-b-2 border-gray-200 dark:border-gray-700">
             <colgroup>
               {columnHeaders.map((header) => (
                 <col
