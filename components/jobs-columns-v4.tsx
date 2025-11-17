@@ -878,7 +878,9 @@ export const createJobsColumnsV4 = ({
       return value.includes(row.getValue(id));
     },
     enableHiding: true,
-    size: 250,
+    size: 300,
+    minSize: 250,
+    maxSize: 350,
   },
   {
     id: "mb_status",
