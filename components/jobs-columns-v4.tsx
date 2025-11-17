@@ -874,8 +874,10 @@ export const createJobsColumnsV4 = ({
         <FeedSourceBadge partnerName={partnerName} paymentType={paymentType} />
       );
     },
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
+    filterFn: (row, id, filterValue) => {
+      const rowValue = row.getValue(id) as string;
+      // filterValue is an array of selected feed sources like ["Veritone CPA", "Appcast CPC"]
+      return filterValue.includes(rowValue);
     },
     enableHiding: true,
     size: 300,
