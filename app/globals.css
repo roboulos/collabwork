@@ -66,39 +66,39 @@
   }
   
   .dark {
-    /* Dark mode - warm blacks */
-    --background: 224 71% 4%;
-    --foreground: 210 20% 98%;
-    
-    /* Better contrast surfaces */
-    --card: 224 64% 6%;
-    --card-hover: 224 64% 8%;
-    --popover: 224 64% 6%;
-    --popover-foreground: 210 20% 98%;
-    
-    /* Adjusted for dark mode */
-    --primary: 142 70% 45%;
-    --primary-hover: 142 75% 50%;
-    --primary-foreground: 0 0% 100%;
-    
-    --secondary: 217 33% 12%;
-    --secondary-foreground: 210 20% 98%;
-    
-    --muted: 217 33% 15%;
-    --muted-foreground: 215 20% 75%;
-    
-    --accent: 217 33% 17%;
-    --accent-foreground: 210 20% 98%;
-    
-    --destructive: 0 62% 48%;
-    --destructive-foreground: 0 0% 98%;
-    
-    /* Subtle borders in dark */
-    --border: 217 33% 18%;
-    --border-subtle: 217 33% 14%;
-    --border-strong: 217 33% 24%;
-    --input: 217 33% 18%;
-    --ring: 142 70% 45%;
+    /* Dark mode - rich deep slate with warmth */
+    --background: 222 47% 11%;
+    --foreground: 210 40% 96%;
+
+    /* Elevated surfaces with depth */
+    --card: 223 40% 14%;
+    --card-hover: 223 40% 16%;
+    --popover: 223 40% 14%;
+    --popover-foreground: 210 40% 96%;
+
+    /* Vibrant accents for dark mode */
+    --primary: 142 76% 48%;
+    --primary-hover: 142 76% 55%;
+    --primary-foreground: 222 47% 11%;
+
+    --secondary: 217 32% 18%;
+    --secondary-foreground: 210 40% 96%;
+
+    --muted: 215 27% 20%;
+    --muted-foreground: 217 24% 70%;
+
+    --accent: 216 34% 22%;
+    --accent-foreground: 210 40% 96%;
+
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 210 40% 96%;
+
+    /* Enhanced borders with color depth */
+    --border: 215 25% 24%;
+    --border-subtle: 215 25% 18%;
+    --border-strong: 215 25% 30%;
+    --input: 215 25% 24%;
+    --ring: 142 76% 48%;
   }
 }
 
