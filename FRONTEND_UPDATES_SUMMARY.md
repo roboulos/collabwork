@@ -164,22 +164,101 @@ curl -X POST 'https://api.collabwork.com/api:microapp/ashley/search-all-jobs' \
 | 22 | Job Target | CPC | 1 | ✅ Added to map |
 | 24 | Direct Employers | CPC | 4,304 | ✅ Working |
 
-## Next Steps (Manual Testing Required)
+## Database Fix Required (CRITICAL)
+
+After implementing the backend and frontend fixes, we discovered a **data inconsistency** in the partner table:
+
+**Problem:** The partner table had incorrect `feed_id` mappings that didn't match actual job data.
+
+**Partner Table Record (ID: 8 - Veritone):**
+
+**Before Fix:**
+```json
+{
+  "attributes": {
+    "job_feed_partner": [
+      {
+        "name": "Veritone CPA",
+        "feed_id": 5,  // ❌ WRONG - no jobs with this ID
+        "is_active": false
+      },
+      {
+        "name": "Veritone CPC",
+        "feed_id": 10,  // ❌ WRONG - no jobs with this ID
+        "is_active": true
+      }
+    ]
+  }
+}
+```
+
+**After Fix:**
+```json
+{
+  "attributes": {
+    "job_feed_partner": [
+      {
+        "name": "Veritone CPA",
+        "feed_id": 26,  // ✅ CORRECT - 13,805 jobs
+        "is_active": true
+      },
+      {
+        "name": "Veritone CPC",
+        "feed_id": 10,  // Kept same (no jobs found)
+        "is_active": false
+      }
+    ]
+  }
+}
+```
+
+**How the Bug Manifested:**
+1. Frontend read partner table via `/ashley/list-all-feed-sources` API
+2. Dropdown showed "Veritone CPA" mapped to `feed_id: 5`
+3. When selected, API query searched for `feed_id: 5`
+4. Result: 0 jobs returned (no jobs have `feed_id: 5`)
+5. Actual Veritone CPA jobs all have `feed_id: 26`
+
+**Database Update Performed:**
+```javascript
+// Updated partner table (ID: 293), record ID: 8
+{
+  "attributes": {
+    "job_feed_partner": [
+      {
+        "name": "Veritone CPA",
+        "feed_id": 26,  // Changed from 5 to 26
+        "is_active": true,  // Changed from false to true
+        "feed_type": "XML",
+        "source_url": "https://vendors.pandologic.com/CollabWORK_A/CollabWORK_DynamicCPA.xml",
+        "parser_type": "Standard",
+        "company_name": "Veritone"
+      }
+    ]
+  }
+}
+```
+
+## Live Testing Results (Playwright Browser Automation)
 
 1. ✅ **Backend Fixed** - Endpoint returning correct data
 2. ✅ **Frontend Updated** - TypeScript interfaces and badge mapping updated
 3. ✅ **Build Passing** - No TypeScript errors
-4. ⏳ **User Testing Needed:**
-   - Start dev server: `npm run dev`
-   - Navigate to dashboard
-   - Select "Veritone CPA" from feed source filter
-   - Verify jobs appear (should show 13,805 jobs)
-   - Check badge displays "Veritone CPA" correctly
+4. ✅ **Database Fixed** - Partner table updated with correct feed_id
+5. ✅ **Live Testing Passed:**
+   - Navigated to http://localhost:3000/dashboard
+   - Selected "Veritone CPA" from feed source filter
+   - **Result: 13,805 jobs displayed correctly**
+   - Console logs confirm: `feed_id: 26` sent to API
+   - API returned: 500 jobs (first page of 13,805 total)
+   - All badges showing "Veritone CPA" correctly
+   - Load time: 1.3 seconds
 
 ## Files Modified
 
-1. **Backend:**
-   - Endpoint 9152 (`ashley/search-all-jobs`) - XanoScript updated
+1. **Backend (Xano):**
+   - Endpoint 9152 (`ashley/search-all-jobs`) - XanoScript addon syntax updated
+   - Partner table (ID: 293), Record ID: 8 - Fixed feed_id mapping for Veritone CPA
 
 2. **Frontend:**
    - `lib/xano.ts` - TypeScript interface for `single_partner`
@@ -188,7 +267,7 @@ curl -X POST 'https://api.collabwork.com/api:microapp/ashley/search-all-jobs' \
 3. **Documentation:**
    - `XANO_ADDON_SYNTAX_GUIDE.md` - Comprehensive addon syntax guide
    - `DATA_STRUCTURE_AND_RELATIONSHIPS.md` - Data structure documentation
-   - `FRONTEND_UPDATES_SUMMARY.md` - This file
+   - `FRONTEND_UPDATES_SUMMARY.md` - This file (updated with database fix details)
 
 ## Key Learning
 
