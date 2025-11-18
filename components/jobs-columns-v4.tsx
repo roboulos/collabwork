@@ -826,17 +826,15 @@ export const createJobsColumnsV4 = ({
       // Try to get partner name from relationship first
       let partnerName = row.single_partner?.partner_name;
 
-      // If no partner name, try to map from feed_id
+      // If no partner name, try to map from feed_id (fallback)
       if (!partnerName && row.feed_id) {
         const feedIdMap: Record<number, string> = {
           7: "Appcast",
           8: "Appcast",
-          10: "Veritone",
-          5: "Veritone",
-          19: "Buyer",
-          9: "Buyer",
+          26: "Veritone",  // ✅ ADDED: Veritone CPA (13,805 jobs)
+          21: "Recruitics",  // ✅ ADDED: Recruitics (15 jobs)
+          22: "Job Target",  // ✅ ADDED: Job Target (1 job)
           24: "Direct Employers Association",
-          23: "Direct Emp",
         };
         partnerName = feedIdMap[row.feed_id];
       }
@@ -853,17 +851,15 @@ export const createJobsColumnsV4 = ({
       // Try to get partner name from relationship first
       let partnerName = job.single_partner?.partner_name;
 
-      // If no partner name, try to map from feed_id
+      // If no partner name, try to map from feed_id (fallback)
       if (!partnerName && job.feed_id) {
         const feedIdMap: Record<number, string> = {
           7: "Appcast",
           8: "Appcast",
-          10: "Veritone",
-          5: "Veritone",
-          19: "Buyer",
-          9: "Buyer",
+          26: "Veritone",  // ✅ ADDED: Veritone CPA (13,805 jobs)
+          21: "Recruitics",  // ✅ ADDED: Recruitics (15 jobs)
+          22: "Job Target",  // ✅ ADDED: Job Target (1 job)
           24: "Direct Employers Association",
-          23: "Direct Emp",
         };
         partnerName = feedIdMap[job.feed_id];
       }

@@ -60,8 +60,24 @@ export interface JobPosting {
   communities?: string[];
   is_morningbrew?: boolean;
   single_partner?: {
+    id?: number;
     partner_name?: string;
-    payment_type?: string;
+    is_active?: boolean;
+    code?: string;
+    partner_type?: string[];
+    attributes?: {
+      job_feed_partner?: Array<{
+        name?: string;
+        feed_id?: number;
+        is_active?: boolean;
+        feed_type?: string;
+        source_url?: string;
+        parser_type?: string;
+        company_name?: string;
+      }>;
+    };
+    partner_email?: string | null;
+    partner_phantom_id?: string | null;
   };
   morningbrew?: {
     id?: number;

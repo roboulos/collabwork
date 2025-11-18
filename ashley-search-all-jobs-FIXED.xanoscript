@@ -1,0 +1,163 @@
+// List all curated jobs with enriched data from job postings and community info
+// FIXED: Single Partner addon now uses $output.partner_id for per-job partner data
+query "ashley/search-all-jobs" verb=POST {
+  input {
+    text search?
+    int feed_id?
+    int page?
+    int per_page?
+  }
+
+  stack {
+    var $page_num {
+      value = $input.page ?? 1
+    }
+
+    var $items_per_page {
+      value = $input.per_page ?? 200
+    }
+
+    var $has_search {
+      value = $input.search != null && $input.search != ""
+    }
+
+    var $has_feed_id {
+      value = $input.feed_id != null
+    }
+
+    var $wrapped_search {
+      value = "*" ~ $input.search ~ "*"
+    }
+
+    conditional {
+      if ($has_search && $has_feed_id) {
+        db.query job_posting {
+          where = ($db.job_posting.$common_search search $wrapped_search) && ($db.job_posting.feed_id == $input.feed_id)
+          return = {
+            type  : "list"
+            paging: {page: $page_num, per_page: $items_per_page, totals: true}
+          }
+
+          output = [
+            "itemsTotal"
+            "itemsReceived"
+            "curPage"
+            "nextPage"
+            "prevPage"
+            "offset"
+            "perPage"
+            "items.*"
+            "items.morningbrew"
+          ]
+
+          addon = [
+            {
+              name : "Single Partner"
+              input: {partner_id: $output.partner_id}
+              as   : "items.single_partner"
+            }
+          ]
+        } as $jobs
+      }
+
+      else {
+        conditional {
+          if ($has_search) {
+            db.query job_posting {
+              where = $db.job_posting.$common_search search $wrapped_search
+              return = {
+                type  : "list"
+                paging: {page: $page_num, per_page: $items_per_page, totals: true}
+              }
+
+              output = [
+                "itemsTotal"
+                "itemsReceived"
+                "curPage"
+                "nextPage"
+                "prevPage"
+                "offset"
+                "perPage"
+                "items.*"
+                "items.morningbrew"
+              ]
+
+              addon = [
+                {
+                  name : "Single Partner"
+                  input: {partner_id: $output.partner_id}
+                  as   : "items.single_partner"
+                }
+              ]
+            } as $jobs
+          }
+
+          else {
+            conditional {
+              if ($has_feed_id) {
+                db.query job_posting {
+                  where = $db.job_posting.feed_id == $input.feed_id
+                  return = {
+                    type  : "list"
+                    paging: {page: $page_num, per_page: $items_per_page, totals: true}
+                  }
+
+                  output = [
+                    "itemsTotal"
+                    "itemsReceived"
+                    "curPage"
+                    "nextPage"
+                    "prevPage"
+                    "offset"
+                    "perPage"
+                    "items.*"
+                    "items.morningbrew"
+                  ]
+
+                  addon = [
+                    {
+                      name : "Single Partner"
+                      input: {partner_id: $output.partner_id}
+                      as   : "items.single_partner"
+                    }
+                  ]
+                } as $jobs
+              }
+
+              else {
+                db.query job_posting {
+                  return = {
+                    type  : "list"
+                    paging: {page: $page_num, per_page: $items_per_page, totals: true}
+                  }
+
+                  output = [
+                    "itemsTotal"
+                    "itemsReceived"
+                    "curPage"
+                    "nextPage"
+                    "prevPage"
+                    "offset"
+                    "perPage"
+                    "items.*"
+                    "items.morningbrew"
+                  ]
+
+                  addon = [
+                    {
+                      name : "Single Partner"
+                      input: {partner_id: $output.partner_id}
+                      as   : "items.single_partner"
+                    }
+                  ]
+                } as $jobs
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  response = $jobs
+}

@@ -627,10 +627,11 @@ export function JobTableEnhancedV3() {
             );
           }
         } else if (feedSourcePartnerId) {
-          console.log(`✅ Calling filterByPartner with partner_id: ${feedSourcePartnerId}, page: ${currentPage}, pageSize: ${pageSize}`);
-          response = await xanoService.filterByPartner(
+          console.log(`✅ Calling searchAllJobs with feed_id: ${feedSourcePartnerId}, page: ${currentPage}, pageSize: ${pageSize}`);
+          response = await xanoService.searchAllJobs(
             currentPage,
             pageSize,
+            "", // Empty search query
             feedSourcePartnerId
           );
         } else {
