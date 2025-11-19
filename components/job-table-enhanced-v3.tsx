@@ -255,9 +255,7 @@ export function JobTableEnhancedV3() {
     post_source: true,
     morningbrew_brands: true,
   });
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
-    { id: 'feed_source', value: ['Appcast CPC'] }
-  ]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [allFeedSources, setAllFeedSources] = useState<Array<{ value: string; label: string }>>([]);
   const [partnerIdMap, setPartnerIdMap] = useState<Map<string, number>>(new Map());
   const [feedSourcesLoaded, setFeedSourcesLoaded] = useState(false);
@@ -322,7 +320,9 @@ export function JobTableEnhancedV3() {
   };
 
   useEffect(() => {
-    if (!isToggling && feedSourcesLoaded) {
+    // Load jobs when feedSourcesLoaded and not currently toggling
+    // The isToggling check prevents loading during the toggle transition
+    if (feedSourcesLoaded && !isToggling) {
       loadJobs();
     }
     // Update column visibility based on view
