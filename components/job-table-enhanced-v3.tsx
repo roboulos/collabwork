@@ -69,25 +69,96 @@ function VirtualizedTable({ table, columns }: VirtualizedTableProps) {
     // Enable smooth scroll handling for large datasets
     scrollMargin: 200,
     // Improve measurement caching
-    measureElement: typeof window !== 'undefined' && rows.length > 1000 
+    measureElement: typeof window !== 'undefined' && rows.length > 1000
       ? undefined  // Skip measuring for very large datasets
       : (element) => element?.getBoundingClientRect().height || 52,
   });
 
   const virtualItems = virtualizer.getVirtualItems();
-  
+
   // Column sizing is available from table state if needed
-  // const columnSizing = table.getState().columnSizing;
+  const columnSizing = table.getState().columnSizing;
+  const companyWidth = columnSizing.company || 320;
+  // Company column is sticky at 40px offset (hardcoded in columns definition)
+  const stickyRightEdge = 40 + companyWidth;
 
   // Get column definitions with explicit widths for perfect alignment
   const columnHeaders = table.getFlatHeaders();
-  
+
   return (
-    <div ref={parentRef} className="h-full overflow-auto relative">
-      <div className="min-w-[2000px]">
-        {/* Sticky header with solid background */}
-        <div className="sticky top-0 z-30 bg-white dark:bg-gray-950">
-          <table className="w-full table-fixed bg-white dark:bg-gray-950 border-b-2 border-gray-200 dark:border-gray-700 shadow-md">
+    <div className="relative h-full w-full">
+      {/* Sticky column separator line (between checkbox and Company) */}
+      <div
+        className="pointer-events-none absolute top-0 bottom-0 w-0 border-r border-gray-200 dark:border-gray-700 z-[100]"
+        style={{ left: '40px' }}
+      />
+
+      {/* Right edge of sticky columns (after Company) - with shadow for depth */}
+      <div
+        className="pointer-events-none absolute top-0 bottom-0 w-4 z-[100] bg-gradient-to-r from-black/5 to-transparent dark:from-white/5"
+        style={{ left: `${stickyRightEdge}px` }}
+      />
+      <div
+        className="pointer-events-none absolute top-0 bottom-0 w-0 border-r border-gray-300 dark:border-gray-600 z-[100]"
+        style={{ left: `${stickyRightEdge}px` }}
+      />
+      <div ref={parentRef} className="h-full overflow-auto relative">
+        <div className="min-w-[2000px]">
+          {/* Sticky header with solid background */}
+          <div className="sticky top-0 z-30 bg-white dark:bg-gray-950">
+            <table className="w-full table-fixed bg-white dark:bg-gray-950 border-b-2 border-gray-200 dark:border-gray-700 shadow-md">
+              <colgroup>
+                {columnHeaders.map((header) => (
+                  <col
+                    key={header.id}
+                    style={{
+                      width: header.getSize(),
+                    }}
+                  />
+                ))}
+              </colgroup>
+              <TableHeader className="bg-gray-50 dark:bg-gray-900">
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => {
+                      const meta = header.column.columnDef.meta as { sticky?: "left" | "right"; stickyOffset?: number } | undefined;
+                      return (
+                        <TableHead
+                          key={`${headerGroup.id}_${header.id}`}
+                          colSpan={header.colSpan}
+                          className={cn(
+                            "relative",
+                            meta?.sticky === "left" && "sticky z-20 bg-gray-50 dark:bg-gray-900 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]"
+                          )}
+                          style={meta?.sticky === "left" ? { left: `${meta.stickyOffset}px` } : undefined}
+                        >
+                          {header.isPlaceholder ? null : (
+                            <>
+                              {flexRender(
+                                header.column.columnDef.header,
+                                header.getContext(),
+                              )}
+                              {header.column.getCanResize() && (
+                                <div
+                                  onMouseDown={header.getResizeHandler()}
+                                  onTouchStart={header.getResizeHandler()}
+                                  className="absolute right-0 top-0 h-full w-1 cursor-col-resize select-none touch-none hover:bg-primary/20 hover:w-2 transition-all"
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              )}
+                            </>
+                          )}
+                        </TableHead>
+                      );
+                    })}
+                  </TableRow>
+                ))}
+              </TableHeader>
+            </table>
+          </div>
+
+          {/* Table body with same column structure */}
+          <table className="w-full table-fixed relative">
             <colgroup>
               {columnHeaders.map((header) => (
                 <col
@@ -98,128 +169,91 @@ function VirtualizedTable({ table, columns }: VirtualizedTableProps) {
                 />
               ))}
             </colgroup>
-            <TableHeader className="bg-gray-50 dark:bg-gray-900">
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <TableHead
-                  key={`${headerGroup.id}_${header.id}`}
-                  colSpan={header.colSpan}
-                  className="relative"
-                >
-                  {header.isPlaceholder ? null : (
-                    <>
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )}
-                      {header.column.getCanResize() && (
-                        <div
-                          onMouseDown={header.getResizeHandler()}
-                          onTouchStart={header.getResizeHandler()}
-                          className="absolute right-0 top-0 h-full w-1 cursor-col-resize select-none touch-none hover:bg-primary/20 hover:w-2 transition-all"
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                      )}
-                    </>
+            <TableBody>
+              {rows.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    No results.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                <>
+                  {/* Virtual spacer before - only if we're scrolled down */}
+                  {virtualItems.length > 0 && virtualItems[0]?.index > 0 && (
+                    <tr>
+                      <td colSpan={columns.length} style={{ height: `${virtualItems[0].start}px` }} />
+                    </tr>
                   )}
-                </TableHead>
-              ))}
-            </TableRow>
-          ))}
-        </TableHeader>
+
+                  {/* Render visible rows */}
+                  {virtualItems.map((virtualItem) => {
+                    const row = rows[virtualItem.index];
+                    return (
+                      <TableRow
+                        key={row.id}
+                        ref={(node) => {
+                          if (node && virtualizer.measureElement) {
+                            virtualizer.measureElement(node);
+                          }
+                        }}
+                        data-selected={row.getIsSelected()}
+                        data-priority={(row.original as JobPosting).morningbrew?.is_priority || false}
+                        data-morningbrew={(row.original as JobPosting).is_morningbrew || false}
+                        className="job-row"
+                        onClick={(e: React.MouseEvent<HTMLTableRowElement>) => {
+                          if (e.detail === 2) return;
+                          const target = e.target as HTMLElement;
+                          const isButton = target.closest("button");
+                          const isLink = target.closest("a");
+                          const isCheckbox = target.closest('input[type="checkbox"]');
+                          const isInput = target.closest('input[type="text"]');
+
+                          if (!isButton && !isLink && !isCheckbox && !isInput) {
+                            row.toggleSelected();
+                          }
+                        }}
+                      >
+                        {row.getVisibleCells().map((cell) => {
+                          const meta = cell.column.columnDef.meta as { sticky?: "left" | "right"; stickyOffset?: number } | undefined;
+                          return (
+                            <TableCell
+                              key={`${row.id}_${cell.column.id}`}
+                              className={cn(
+                                meta?.sticky === "left" && "sticky z-10 bg-white dark:bg-gray-950 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]"
+                              )}
+                              style={meta?.sticky === "left" ? { left: `${meta.stickyOffset}px` } : undefined}
+                            >
+                              {flexRender(
+                                cell.column.columnDef.cell,
+                                cell.getContext(),
+                              )}
+                            </TableCell>
+                          );
+                        })}
+                      </TableRow>
+                    );
+                  })}
+
+                  {/* Virtual spacer after */}
+                  {virtualItems.length > 0 &&
+                    virtualItems[virtualItems.length - 1]?.index < rows.length - 1 && (
+                      <tr>
+                        <td
+                          colSpan={columns.length}
+                          style={{
+                            height: `${virtualizer.getTotalSize() - (virtualItems[virtualItems.length - 1]?.end || 0)}px`
+                          }}
+                        />
+                      </tr>
+                    )}
+                </>
+              )}
+            </TableBody>
           </table>
         </div>
-        
-        {/* Table body with same column structure */}
-        <table className="w-full table-fixed relative">
-          <colgroup>
-            {columnHeaders.map((header) => (
-              <col
-                key={header.id}
-                style={{
-                  width: header.getSize(),
-                }}
-              />
-            ))}
-          </colgroup>
-          <TableBody>
-          {rows.length === 0 ? (
-            <TableRow>
-              <TableCell
-                colSpan={columns.length}
-                className="h-24 text-center"
-              >
-                No results.
-              </TableCell>
-            </TableRow>
-          ) : (
-            <>
-              {/* Virtual spacer before - only if we're scrolled down */}
-              {virtualItems.length > 0 && virtualItems[0]?.index > 0 && (
-                <tr>
-                  <td colSpan={columns.length} style={{ height: `${virtualItems[0].start}px` }} />
-                </tr>
-              )}
-              
-              {/* Render visible rows */}
-              {virtualItems.map((virtualItem) => {
-                const row = rows[virtualItem.index];
-                return (
-                  <TableRow
-                    key={row.id}
-                    ref={(node) => {
-                      if (node && virtualizer.measureElement) {
-                        virtualizer.measureElement(node);
-                      }
-                    }}
-                    data-selected={row.getIsSelected()}
-                    data-priority={(row.original as JobPosting).morningbrew?.is_priority || false}
-                    data-morningbrew={(row.original as JobPosting).is_morningbrew || false}
-                    className="job-row"
-                    onClick={(e: React.MouseEvent<HTMLTableRowElement>) => {
-                      if (e.detail === 2) return;
-                      const target = e.target as HTMLElement;
-                      const isButton = target.closest("button");
-                      const isLink = target.closest("a");
-                      const isCheckbox = target.closest('input[type="checkbox"]');
-                      const isInput = target.closest('input[type="text"]');
-
-                      if (!isButton && !isLink && !isCheckbox && !isInput) {
-                        row.toggleSelected();
-                      }
-                    }}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell 
-                        key={`${row.id}_${cell.column.id}`}
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                );
-              })}
-              
-              {/* Virtual spacer after */}
-              {virtualItems.length > 0 && 
-                virtualItems[virtualItems.length - 1]?.index < rows.length - 1 && (
-                <tr>
-                  <td 
-                    colSpan={columns.length} 
-                    style={{ 
-                      height: `${virtualizer.getTotalSize() - (virtualItems[virtualItems.length - 1]?.end || 0)}px` 
-                    }} 
-                  />
-                </tr>
-              )}
-            </>
-          )}
-        </TableBody>
-        </table>
       </div>
     </div>
   );
@@ -233,7 +267,7 @@ export function JobTableEnhancedV3() {
   const [showMorningBrewOnly, setShowMorningBrewOnly] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
   const loadingRef = useRef(false);
-  
+
   // Server-side pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(500); // Increased to test virtualization
@@ -333,7 +367,7 @@ export function JobTableEnhancedV3() {
         cpc: false,
         cpa: false,
         salary: false,
-        feed_source: false,
+        feed_source: true, // ✅ SHOW Feed Source in Morning Brew view to display deleted indicator
       }));
     } else {
       // Show all columns in default view
@@ -431,7 +465,7 @@ export function JobTableEnhancedV3() {
       console.log("Already loading, skipping duplicate call");
       return;
     }
-    
+
     try {
       loadingRef.current = true;
       // Don't set loading if we're toggling views to prevent flash
@@ -458,7 +492,7 @@ export function JobTableEnhancedV3() {
             is_priority?: boolean;  // Add this field to the type
             community_ids?: number[];
             formatted_title?: string;
-            is_source_deleted?: boolean;
+            source_deleted?: boolean | string;  // API returns this (can be boolean or string "true"/"false")
             type?: string;  // Add employment type field from API
             is_remote?: string | boolean;  // Add remote status field from API
             job_posting?: JobPosting;
@@ -486,26 +520,29 @@ export function JobTableEnhancedV3() {
             // Use job_posting data as base, then override with MB-specific data
             const baseJob = mbJob.job_posting || ({} as JobPosting);
 
+            // Check if source is deleted (handle both boolean and string "true"/"false")
+            const isSourceDeleted = mbJob.source_deleted === true || mbJob.source_deleted === "true";
+
             // Preserve feed source data when source is deleted
             const feedSource =
-              mbJob.is_source_deleted && mbJob.cached_feed_source
+              isSourceDeleted && mbJob.cached_feed_source
                 ? {
-                    partner_name: mbJob.cached_feed_source,
-                    payment_type: mbJob.cached_payment_type || "",
-                  }
+                  partner_name: mbJob.cached_feed_source,
+                  payment_type: mbJob.cached_payment_type || "",
+                }
                 : baseJob.single_partner || {
-                    partner_name: "",
-                    payment_type: "",
-                  };
+                  partner_name: "",
+                  payment_type: "",
+                };
 
             // Preserve posted date when source is deleted
             const postedAt =
-              mbJob.is_source_deleted && mbJob.cached_posted_at
+              isSourceDeleted && mbJob.cached_posted_at
                 ? mbJob.cached_posted_at
                 : baseJob.posted_at || mbJob.created_at || Date.now();
 
             // Determine if this job has missing source data (deleted with no cache)
-            const isMissingSourceData = mbJob.is_source_deleted === true && !mbJob.title && !mbJob.company;
+            const isMissingSourceData = isSourceDeleted && !mbJob.title && !mbJob.company;
 
             return {
               // Spread all job_posting fields first
@@ -524,7 +561,7 @@ export function JobTableEnhancedV3() {
               location: mbJob.location || baseJob.location || [],
               is_morningbrew: true,
               // Mark as source deleted to help with UI rendering
-              source_deleted: mbJob.is_source_deleted === true,
+              source_deleted: isSourceDeleted,
               // Get custom fields - now coming directly from API response
               custom_company_name:
                 mbJob.morningbrew?.custom_company_name ||
@@ -533,16 +570,16 @@ export function JobTableEnhancedV3() {
                 mbJob.morningbrew?.custom_location || baseJob.custom_location,
               custom_employment_type:
                 mbJob.type ||  // Use type field from API response
-                mbJob.morningbrew?.custom_employment_type || 
+                mbJob.morningbrew?.custom_employment_type ||
                 baseJob.custom_employment_type,
               custom_is_remote:
                 // Convert boolean to text values or use existing text
-                mbJob.is_remote !== undefined ? 
-                  (typeof mbJob.is_remote === 'boolean' ? 
-                    (mbJob.is_remote ? "Remote" : "On-site") : 
+                mbJob.is_remote !== undefined ?
+                  (typeof mbJob.is_remote === 'boolean' ?
+                    (mbJob.is_remote ? "Remote" : "On-site") :
                     String(mbJob.is_remote)) :
-                mbJob.morningbrew?.custom_is_remote || 
-                baseJob.custom_is_remote,
+                  mbJob.morningbrew?.custom_is_remote ||
+                  baseJob.custom_is_remote,
               // Use preserved feed source data
               single_partner: feedSource,
               cpc:
@@ -568,13 +605,13 @@ export function JobTableEnhancedV3() {
                   }),
                 ),
                 formatted_title: mbJob.formatted_title,
-                is_source_deleted: mbJob.is_source_deleted || false,
+                is_source_deleted: isSourceDeleted,
                 custom_employment_type:
                   mbJob.type || mbJob.morningbrew?.custom_employment_type,
-                custom_is_remote: 
-                  mbJob.is_remote !== undefined ? 
-                    (typeof mbJob.is_remote === 'boolean' ? 
-                      (mbJob.is_remote ? "Remote" : "On-site") : 
+                custom_is_remote:
+                  mbJob.is_remote !== undefined ?
+                    (typeof mbJob.is_remote === 'boolean' ?
+                      (mbJob.is_remote ? "Remote" : "On-site") :
                       String(mbJob.is_remote)) :
                     mbJob.morningbrew?.custom_is_remote,
               },
@@ -586,13 +623,13 @@ export function JobTableEnhancedV3() {
         // Load jobs with pagination - DEFAULT VIEW
         console.log(`Fetching ${pageSize} records from API...`);
         const startTime = Date.now();
-        
+
         console.log("Calling listJobs with search:", debouncedSearch);
-        
+
         // Get feed_source filter directly from state (matches search pattern)
         let feedSourcePartnerId: number | undefined;
         const feedSourceFilter = columnFilters.find(f => f.id === 'feed_source')?.value as string[] | undefined;
-        
+
         if (feedSourceFilter && feedSourceFilter.length > 0) {
           console.log(`✅ Feed source filter active:`, feedSourceFilter);
           // Get the first selected feed source and look up its partner_id
@@ -604,7 +641,7 @@ export function JobTableEnhancedV3() {
             console.warn(`⚠️ No partner_id found for feed "${selectedFeed}"`);
           }
         }
-        
+
         // Always use searchAllJobs when there's a search query
         let response;
         if (debouncedSearch) {
@@ -643,7 +680,7 @@ export function JobTableEnhancedV3() {
           );
         }
         console.log("API response:", response);
-        
+
         const loadTime = Date.now() - startTime;
         console.log(`API Response - page: ${currentPage}, pageSize: ${pageSize}`);
         console.log(`Response items count: ${response.items?.length || response.length}`);
@@ -871,9 +908,9 @@ export function JobTableEnhancedV3() {
               ...j,
               morningbrew: j.morningbrew
                 ? {
-                    ...j.morningbrew,
-                    formatted_title: editValue,
-                  }
+                  ...j.morningbrew,
+                  formatted_title: editValue,
+                }
                 : undefined,
             };
           } else if (editingCell.field === "company") {
@@ -886,9 +923,9 @@ export function JobTableEnhancedV3() {
               custom_employment_type: editValue,  // Update root-level field
               morningbrew: j.morningbrew
                 ? {
-                    ...j.morningbrew,
-                    custom_employment_type: editValue,
-                  }
+                  ...j.morningbrew,
+                  custom_employment_type: editValue,
+                }
                 : undefined,
             };
           } else if (editingCell.field === "is_remote") {
@@ -897,9 +934,9 @@ export function JobTableEnhancedV3() {
               custom_is_remote: editValue,  // Update root-level field
               morningbrew: j.morningbrew
                 ? {
-                    ...j.morningbrew,
-                    custom_is_remote: editValue,
-                  }
+                  ...j.morningbrew,
+                  custom_is_remote: editValue,
+                }
                 : undefined,
             };
           }
@@ -916,7 +953,7 @@ export function JobTableEnhancedV3() {
           formatted_title: editValue,
         };
         const updateResponse = await xanoService.updateJob(updatePayload);
-        
+
         // Update the local state with the confirmed formatted_title
         if (updateResponse.updated_data && updateResponse.updated_data.formatted_title) {
           setJobs(prevJobs =>
@@ -988,10 +1025,10 @@ export function JobTableEnhancedV3() {
           employment_type: job.employment_type,
           is_remote: job.is_remote
         });
-        
+
         const updateResponse = await xanoService.updateJob(updatePayload);
         console.log("Update response from API:", updateResponse);
-        
+
         // Update the local state with the confirmed values from API
         if (updateResponse.updated_data) {
           setJobs(prevJobs =>
@@ -1174,10 +1211,10 @@ export function JobTableEnhancedV3() {
         message: `Added ${selectedJobIds.length} jobs to Morning Brew`,
         type: "success",
       });
-      
+
       // Refresh data to show the updated state
       await loadJobs();
-      
+
       // Clear selection and close modal
       setRowSelection({});
       setModalOpen(false);
@@ -1249,13 +1286,13 @@ export function JobTableEnhancedV3() {
     onColumnVisibilityChange: setColumnVisibility,
     onColumnSizingChange: setColumnSizing,
     onPaginationChange: (updater) => {
-      const newPagination = typeof updater === 'function' 
+      const newPagination = typeof updater === 'function'
         ? updater({ pageIndex: currentPage - 1, pageSize })
         : updater;
-      
+
       const newPage = newPagination.pageIndex + 1;
       const newPageSize = newPagination.pageSize;
-      
+
       // Only update if values actually changed
       if (newPage !== currentPage) {
         setCurrentPage(newPage);
@@ -1276,8 +1313,8 @@ export function JobTableEnhancedV3() {
   if (loading && jobs.length === 0) {
     return (
       <div className="relative h-screen">
-        <LoadingOverlay 
-          type="loading" 
+        <LoadingOverlay
+          type="loading"
           message="Loading job listings..."
         />
       </div>
@@ -1330,14 +1367,14 @@ export function JobTableEnhancedV3() {
               showMorningBrewOnly ? "morningbrew-view" : "collabwork-view"
             )}>
               {(isToggling || (loading && jobs.length > 0)) && (
-                <LoadingOverlay 
+                <LoadingOverlay
                   type={isToggling ? "toggle" : debouncedSearch ? "search" : "loading"}
                   message={
-                    isToggling 
-                      ? showMorningBrewOnly 
-                        ? "Switching to all jobs..." 
+                    isToggling
+                      ? showMorningBrewOnly
+                        ? "Switching to all jobs..."
                         : "Loading Morning Brew jobs..."
-                      : debouncedSearch 
+                      : debouncedSearch
                         ? `Searching for "${debouncedSearch}"...`
                         : undefined
                   }
