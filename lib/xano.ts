@@ -42,6 +42,7 @@ export interface JobPosting {
   partner_id?: number;
   feed_id?: number;
   source?: string;
+  source_deleted?: boolean | string; // Added to support source deleted status
   custom_company_name?: string;
   custom_location?: string | Array<{
     city?: string;
