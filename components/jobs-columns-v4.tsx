@@ -870,26 +870,30 @@ export const createJobsColumnsV4 = ({
         const sourceDeletedValue = job.source_deleted;
         const isSourceDeleted = sourceDeletedValue === "true" || sourceDeletedValue === true;
 
-        // DEBUG: Log first 3 rows to see what data we're getting
-        if (row.index < 3) {
-          console.log(`🔍 Feed Source Debug [Row ${row.index}]:`, {
-            company: job.company,
-            source_deleted: job.source_deleted,
-            sourceDeletedValue,
-            isSourceDeleted,
-            willShow: isSourceDeleted ? 'DELETED (red)' : 'ACTIVE (green)'
-          });
+        // Get partner name from relationship
+        let partnerName = job.single_partner?.partner_name;
+
+        // If no partner name, try to map from feed_id (fallback)
+        if (!partnerName && job.feed_id) {
+          const feedIdMap: Record<number, string> = {
+            7: "Appcast",
+            8: "Appcast",
+            26: "Veritone",
+            21: "Recruitics",
+            22: "Job Target",
+            24: "Direct Employers Association",
+          };
+          partnerName = feedIdMap[job.feed_id];
         }
 
+        const paymentType = (job.cpa || 0) > 0 ? "CPA" : "CPC";
+
         return (
-          <div className={cn(
-            "inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium",
-            isSourceDeleted
-              ? "bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400"
-              : "bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400"
-          )}>
-            {isSourceDeleted ? "Source Deleted" : "Source Active"}
-          </div>
+          <FeedSourceBadge
+            partnerName={partnerName}
+            paymentType={paymentType}
+            isSourceDeleted={isSourceDeleted}
+          />
         );
       },
       filterFn: (row, id, filterValue) => {
