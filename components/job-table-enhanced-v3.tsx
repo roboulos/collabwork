@@ -1219,8 +1219,9 @@ export function JobTableEnhancedV3() {
         type: "success",
       });
 
-      // Refresh data to show the updated state
-      await loadJobs();
+      // NOTE: We already updated jobs in-place above (lines 1180-1198)
+      // Do NOT call loadJobs() here - it would reload the list and make the job "disappear"
+      // The in-place update keeps the job visible in its current position with updated state
 
       // Clear selection and close modal
       setRowSelection({});
