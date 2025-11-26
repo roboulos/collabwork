@@ -242,6 +242,18 @@ class XanoService {
     return response.data;
   }
 
+  async searchMorningBrewJobs(page: number = 1, per_page: number = 100, search?: string) {
+    const payload = {
+      page: page,
+      per_page: per_page,
+      search: search || ''
+    };
+    console.log('XanoService.searchMorningBrewJobs - Sending payload:', payload);
+    const response = await this.axiosInstance.post('/api:microapp/ashley/search-morningbrew-jobs', payload);
+    console.log('XanoService.searchMorningBrewJobs - Response received, items:', response.data.items?.length || 0);
+    return response.data;
+  }
+
   // Authentication methods
   async loginAdmin(email: string, password: string) {
     const response = await this.axiosInstance.post('/api:microapp/admin/auth/login', {

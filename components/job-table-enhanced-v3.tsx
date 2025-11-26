@@ -473,8 +473,15 @@ export function JobTableEnhancedV3() {
         setLoading(true);
       }
       if (showMorningBrewOnly) {
-        // Load Morning Brew curated jobs
-        const response = await xanoService.listMorningBrewJobs(1, "", 500);
+        // Load Morning Brew curated jobs - use search endpoint if there's a search query
+        let response;
+        if (debouncedSearch) {
+          console.log(`🔍 Searching Morning Brew curated jobs for: "${debouncedSearch}"`);
+          response = await xanoService.searchMorningBrewJobs(currentPage, pageSize, debouncedSearch);
+        } else {
+          console.log(`📋 Loading all Morning Brew curated jobs`);
+          response = await xanoService.listMorningBrewJobs(1, "", 500);
+        }
 
         const transformedJobs = (response.items || []).map(
           (mbJob: {
